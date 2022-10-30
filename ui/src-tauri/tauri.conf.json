@@ -1,0 +1,78 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "cross-env VITE_SERVICE_ENV=dev vite",
+    "devPath": "http://localhost:3200",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "T-Shell",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true,
+			"shell": {
+				"all": false,
+				"execute": true,
+				"sidecar": true,
+				"scope": [
+					{ "name": "server", "sidecar": true }
+				]
+			}
+		},
+    "bundle": {
+      "active": true,
+      "category": "DeveloperTool",
+      "copyright": "",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": ["server"],
+      "icon": [
+        "icons/shell32x32.png",
+        "icons/shell128x128.png",
+        "icons/shell-icon.icns",
+        "icons/shell-icon.ico"
+      ],
+      "identifier": "TheBlind",
+      "longDescription": "T-Shell",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "",
+      "targets": "all",
+      "windows": {
+				"webviewInstallMode": {
+					"type": "downloadBootstrapper"
+				},
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 700,
+        "resizable": true,
+        "title": "T-Shell",
+        "width": 1200,
+				"minWidth": 1000,
+				"minHeight": 700
+			}
+    ]
+  }
+}
