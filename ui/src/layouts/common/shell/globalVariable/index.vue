@@ -97,7 +97,10 @@ const openUpdPage = id => {
 const columns: DataTableColumns = [
   {
     title: '名称',
-    key: 'varName'
+    key: 'varName',
+		ellipsis: {
+			tooltip: true
+		}
   },
   {
     title: '值',
