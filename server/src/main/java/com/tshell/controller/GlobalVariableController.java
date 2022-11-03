@@ -59,7 +59,7 @@ public class GlobalVariableController {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Transactional(rollbackOn = Exception.class,value = Transactional.TxType.NEVER)
+    @Transactional(rollbackOn = Exception.class, value = Transactional.TxType.NEVER)
     public BaseResponse<GlobalVariable> create(@Valid AddGlobalVar addGlobalVar) throws Exception {
         if (isNameExists(addGlobalVar.varName())) {
             throw new WebApplicationException("该变量名称已存在", 500);
@@ -71,22 +71,26 @@ public class GlobalVariableController {
         return BaseResponse.ok(convert);
     }
 
+
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    @Transactional(rollbackOn = Exception.class,value = Transactional.TxType.NEVER)
+    @Transactional(rollbackOn = Exception.class)
     public BaseResponse<GlobalVariable> update(@PathParam("id") Integer id, @Valid UpdGlobalVar updGlobalVar) throws Exception {
+
         GlobalVariable entity = GlobalVariable.findById(id);
         if (entity == null) {
             throw new WebApplicationException("Fruit with id of " + id + " does not exist.", 404);
         }
-        if (!Objects.equals(updGlobalVar.varName(), entity.getVarName()) && isNameExists(updGlobalVar.varName())) {
+
+        if (!Objects.equals(updGlobalVar.varName(), entity.getVarName()) && GlobalVariable.count("varName = ?1", updGlobalVar.varName()) != 0) {
             throw new WebApplicationException("该变量名称已存在", 500);
         }
+
         updGlobalVar.copyProperty(entity);
+
         return BaseResponse.ok(entity);
     }
-
 
 
     private boolean isNameExists(String name) throws Exception {
@@ -99,6 +103,8 @@ public class GlobalVariableController {
             userTransaction.commit();
         }
     }
+
+
 
 
     @DELETE

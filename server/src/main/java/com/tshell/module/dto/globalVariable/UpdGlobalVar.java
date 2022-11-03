@@ -18,6 +18,6 @@ public record UpdGlobalVar(
         String value) {
     public void copyProperty(GlobalVariable source) {
         source.setVarName(this.varName);
-        source.setValue(value);
+        source.setValue(this.value);
     }
 }
