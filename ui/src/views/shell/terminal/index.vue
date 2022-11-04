@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu">
+  <div class="h-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu" @mouseleave="hideDropdownMenu">
     <div id="container" style="height: 95.7%">
       <div id="terminal" class="h-full"></div>
       <n-dropdown
@@ -17,6 +17,7 @@
         :render-icon="renderDropdownIcon"
         @contextmenu="disabledContextMenu"
         @select="handleSearchSelect"
+				:on-clickoutside="onSearchDropdownClickoutside"
       />
     </div>
     <!--		position: relative; top: -28px	-->
@@ -183,6 +184,10 @@ const renderDropdownIcon = option => {
   /* class: 'text-primary' */
   return h(Icon, { icon });
 };
+const onSearchDropdownClickoutside = () => {
+	showSearchDropdownRef.value=false;
+}
+
 let cmdStartIndex = 0;
 
 /**
@@ -263,6 +268,20 @@ const getDropdownMenuHeight = () => {
   window.console.info(searchDropdownOptions.value.length);
   return searchDropdownOptions.value.length * menuItemHeight + 10;
 };
+
+/**
+ *@param e.toElement 鼠标到的元素
+ */
+const hideDropdownMenu = e => {
+
+	// 进入 下拉菜单
+		if(e?.toElement?.className.indexOf("n-dropdown-menu")!==-1){
+			return;
+		}
+	isInMenuSelection=false;
+	showSearchDropdownRef.value = false;
+	searchDropdownOptions.value=[];
+}
 
 onBeforeMount(() => {
   tabStore.setActiveTabTitle(String(route.query.title));
