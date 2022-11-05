@@ -236,6 +236,15 @@ async function initConnect() {
   let connectState = false;
   const width = document.getElementById('container')?.offsetWidth;
   const height = document.getElementById('container')?.offsetHeight;
+	webSocket?.addMonitor(channelId, 'CMD', message => {
+		window.console.info(`CMD 接收 ${term}`);
+		term.write(message);
+	});
+
+	webSocket?.addMonitor(channelId, 'RETRIEVE_CMD', message => {
+		window.console.info(`RETRIEVE_CMD 接收`);
+		term.retrieve(JSON.parse(message));
+	});
   if (sessionId === undefined) {
     window.console.info('local');
     const resultData = await localInitConnect(channelId, cols, rows, width, height);
@@ -249,16 +258,6 @@ async function initConnect() {
       connectState = true;
     }
   }
-  webSocket?.connect(channelId, term);
-  webSocket?.addMonitor(channelId, 'CMD', message => {
-    window.console.info(`CMD 接收 ${term}`);
-    term.write(message);
-  });
-
-  webSocket?.addMonitor(channelId, 'RETRIEVE_CMD', message => {
-    window.console.info(`RETRIEVE_CMD 接收`);
-    term.retrieve(JSON.parse(message));
-  });
   return connectState;
 }
 
@@ -299,7 +298,7 @@ onMounted(() => {
   const fontSize = 18;
   term = new Terminal({
     rendererType: 'canvas',
-    name: 'terminal',
+    name: 'terminal'+channelId,
     rightClickSelectsWord: true,
     scrollback: 800,
     disableStdin: false,
