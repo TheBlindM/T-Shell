@@ -409,7 +409,7 @@ onMounted(() => {
   };
 
   function refreshSearchDropdownPosition() {
-    const element = document.getElementById('terminal');
+    const element = document.getElementById(`terminal${channelId}`);
 
     window.console.info('------------------------menu-------------------------');
 
