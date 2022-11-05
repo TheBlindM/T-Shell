@@ -1,7 +1,7 @@
 <template>
   <div class="h-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu" @mouseleave="hideDropdownMenu">
     <div id="container" style="height: 95.7%">
-      <div id="terminal" class="h-full"></div>
+      <div :id="`terminal${channelId}`" class="h-full"></div>
       <n-dropdown
         ref="dropdownMenu"
         :flip="false"
@@ -298,7 +298,7 @@ onMounted(() => {
   const fontSize = 18;
   term = new Terminal({
     rendererType: 'canvas',
-    name: 'terminal'+channelId,
+    name: `terminal${channelId}`,
     rightClickSelectsWord: true,
     scrollback: 800,
     disableStdin: false,
@@ -507,7 +507,7 @@ onMounted(() => {
     window.console.info(`term 处理 该按键`);
     return true;
   });
-  term.open(document.getElementById('terminal'));
+  term.open(document.getElementById(`terminal${channelId}`));
   fitAddon.fit();
 
   initConnect().then(data => {
