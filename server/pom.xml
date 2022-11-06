@@ -238,7 +238,7 @@
                <!-- <quarkus.native.additional-build-args>-J&#45;&#45;enable-preview,&#45;&#45;initialize-at-run-time=com.example.core.tty.TtyConnectorFactory,&#45;&#45;initialize-at-run-time=org.apache.sshd.common.util.security.bouncycastle.BouncyCastleRandom,&#45;&#45;initialize-at-run-time=jtermios.windows.WinAPI,&#45;&#45;initialize-at-run-time=com.pty4j.unix.openbsd.OSFacadeImpl,&#45;&#45;initialize-at-run-time=com.pty4j.unix.macosx.OSFacadeImpl,&#45;&#45;initialize-at-run-time=com.pty4j.unix.linux.OSFacadeImpl,&#45;&#45;initialize-at-run-time=com.pty4j.unix.freebsd.OSFacadeImpl,&#45;&#45;initialize-at-run-time=jtermios.windows.WinAPI,&#45;&#45;initialize-at-run-time=com.pty4j.unix.PtyHelpers$OSFacade,&#45;&#45;report-unsupported-elements-at-runtime</quarkus.native.additional-build-args>
 
               -J-XX:+UseCompressedOops-->
-                <quarkus.native.additional-build-args>-J--enable-preview,-J-XX:+UseStringDeduplication,--initialize-at-run-time=cn.hutool.core.lang.id.NanoId,--initialize-at-run-time=com.tshell.core.JschPtyConnector,--trace-object-instantiation=java.lang.Thread</quarkus.native.additional-build-args>
+                <quarkus.native.additional-build-args>-J--enable-preview,-J-XX:+UseStringDeduplication,-R:MaximumHeapSizePercent=10,-R:MaximumYoungGenerationSizePercent=10,--initialize-at-run-time=cn.hutool.core.lang.id.NanoId,--initialize-at-run-time=com.tshell.core.JschPtyConnector,--trace-object-instantiation=java.lang.Thread</quarkus.native.additional-build-args>
 
             </properties>
         </profile>
