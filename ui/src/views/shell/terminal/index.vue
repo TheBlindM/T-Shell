@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu" @mouseleave="hideDropdownMenu">
+  <div class="h-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu"  @mouseleave="hideDropdownMenu">
     <div id="container" style="height: 95.7%">
       <div :id="`terminal${channelId}`" class="h-full"></div>
       <n-dropdown
@@ -274,7 +274,7 @@ const getDropdownMenuHeight = () => {
 const hideDropdownMenu = e => {
 
 	// 进入 下拉菜单
-		if(e?.toElement?.className.indexOf("n-dropdown-menu")!==-1){
+		if(e?.toElement?.className.indexOf("n-dropdown")!==-1){
 			return;
 		}
 	isInMenuSelection=false;
