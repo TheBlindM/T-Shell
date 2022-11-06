@@ -133,6 +133,8 @@ public final class JschPtyConnector implements TtyConnector {
         String outText = String.valueOf(chars, 0, count);
         if (outText.contains(StrUtil.CRLF)) {
             originalLineText = new StringBuilder(outText);
+        } else {
+            originalLineText.append(outText);
         }
         return count;
     }
