@@ -71,6 +71,7 @@ const onAfterLeave = () => {
 };
 
 const deleteHandle = (id: number) => {
+	app.disabledDrawerMouseleave();
   const deleteDialog = dialog.warning({
     title: '删除',
     content: '请确认删除吗?',
@@ -82,7 +83,13 @@ const deleteHandle = (id: number) => {
         reloadTable();
         deleteDialog.loading = false;
       }
-    }
+    },
+		onClose:()=>{
+			app.enableDrawerMouseleave();
+		},
+		onMaskClick:()=>{
+			app.enableDrawerMouseleave();
+		}
   });
 };
 
