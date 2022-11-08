@@ -235,7 +235,7 @@
                 <enableHttpUrlHandler>true</enableHttpUrlHandler>
                 <enableJni>true</enableJni>
                 <quarkus.package.type>native</quarkus.package.type>
-                <quarkus.native.additional-build-args>-J--enable-preview,-J-XX:+UseStringDeduplication,-R:MaximumHeapSizePercent=10,-R:MaximumYoungGenerationSizePercent=10,--initialize-at-run-time=cn.hutool.core.lang.id.NanoId,--initialize-at-run-time=com.tshell.core.JschPtyConnector,--trace-object-instantiation=java.lang.Thread</quarkus.native.additional-build-args>
+                <quarkus.native.additional-build-args>-J--enable-preview,-R:MaxHeapSize=1073741824,-J-XX:+UseStringDeduplication,-R:MaxNewSize=20971520,--initialize-at-run-time=cn.hutool.core.lang.id.NanoId,--initialize-at-run-time=com.tshell.core.JschPtyConnector,--trace-object-instantiation=java.lang.Thread</quarkus.native.additional-build-args>
 
             </properties>
         </profile>
