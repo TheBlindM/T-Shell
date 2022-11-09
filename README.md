@@ -95,5 +95,5 @@
 ## 微信
 
 <div align="center">
-	<img src="doc/img/wx.jpg">
+	<img src="doc/img/wx.jpg" width="200">
 </div>
