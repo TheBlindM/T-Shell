@@ -3,13 +3,11 @@ import { WebSocketClient } from '@/utils';
 export class MsgWebSocket {
   webSocket: WebSocketClient;
 
-  terms: any = {};
-
   events: any = {};
 
   constructor() {
     this.webSocket = new WebSocketClient('msg');
-    const terms1 = this.terms;
+
     const localEvents = this.events;
     this.webSocket.connect({
       onError(error) {
@@ -25,26 +23,9 @@ export class MsgWebSocket {
       },
       onData(data) {
         const acceptMsg: Msg = JSON.parse(data);
-        debugger;
-        console.log(acceptMsg);
-        console.log(localEvents);
         localEvents[`${acceptMsg.channelId}-${acceptMsg.msgType}`](acceptMsg.message);
-        /* switch (acceptShellMessage.messageType) {
-          case 'CMD':
-            terms1[acceptShellMessage.channelId].write(acceptShellMessage.message);
-            break;
-          // eslint-disable-next-line no-fallthrough
-          case 'RETRIEVE_CMD':
-            terms1[acceptShellMessage.channelId].retrieve(JSON.parse(acceptShellMessage.message));
-            break;
-          default:
-        } */
       }
     });
-  }
-
-  connect(channelId: any, term: any) {
-    this.terms[channelId] = term;
   }
 
   addMonitor(channelId: any, msgType: any, event: (arg0: any) => void) {
@@ -70,22 +51,4 @@ export class Msg {
   }
 }
 
-export class ShellMessage {
-  channelId: string | unknown;
-
-  message: string | null;
-
-  messageType: string;
-
-  constructor(channelId: string | unknown, message: string, messageType: string) {
-    this.channelId = channelId;
-    this.message = message;
-    this.messageType = messageType;
-  }
-}
-
-export enum MessageType {
-  CMD = 'CMD',
-  RETRIEVE_CMD = 'RETRIEVE_CMD'
-}
 export const shellWebSocket = new MsgWebSocket();
