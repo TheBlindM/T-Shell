@@ -50,5 +50,9 @@ export class Msg {
     this.channelId = channelId;
   }
 }
+export enum MessageType {
+	CMD = 'CMD',
+	RETRIEVE_CMD = 'RETRIEVE_CMD'
+}
 
 export const shellWebSocket = new MsgWebSocket();

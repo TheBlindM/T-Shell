@@ -1,7 +1,7 @@
 <template>
   <div class="h-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu"  @mouseleave="hideDropdownMenu">
     <div id="container" style="height: 95.7%">
-      <div :id="`terminal${channelId}`" class="h-full"></div>
+      <div :id="`terminal${channelId}`" class="h-full" @contextmenu="handleContextRightClickMenu"></div>
       <n-dropdown
         ref="dropdownMenu"
         :flip="false"
@@ -19,6 +19,16 @@
         @select="handleSearchSelect"
 				:on-clickoutside="onSearchDropdownClickoutside"
       />
+
+			<n-dropdown
+				placement="bottom-start"
+				trigger="manual"
+				:x="rightClickMenuX"
+				:y="rightClickMenuY"
+				:options="rightClickOptions"
+				:show="showRightClickMenuRef"
+				@select="handleRightClickMenuSelect"
+			/>
     </div>
     <!--		position: relative; top: -28px	-->
     <dark-mode-container style="height: 26px; position: relative; bottom: -1%">
@@ -83,7 +93,7 @@
 </template>
 
 <script setup>
-import { h, onActivated, onBeforeMount, onDeactivated, onMounted, ref, watch } from 'vue';
+import {h, nextTick, onActivated, onBeforeMount, onDeactivated, onMounted, ref, watch} from 'vue';
 import { useRoute } from 'vue-router';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
@@ -128,6 +138,46 @@ const onPlaceholderClick = () => {
   parseTemplate(currentOptionValue, channelId, placeholderItems.value);
   activePlaceholder.value = false;
 };
+
+// 右键菜单
+const showRightClickMenuRef=ref(false);
+const rightClickMenuX = ref(0);
+const rightClickMenuY = ref(0);
+const rightClickOptions = [
+	{
+		label: '复制',
+		key: 'copy'
+	},
+	{
+		label: '粘贴',
+		key: 'paste'
+	}];
+
+const handleRightClickMenuSelect=(key)=>{
+	showRightClickMenuRef.value = false
+	switch (key) {
+		case 'copy':
+			navigator.clipboard.writeText(term.getSelection());
+			break;
+		case 'paste':
+			navigator.clipboard.readText().then(clipText => {
+				webSocket?.sendJsonMessage(new Msg(channelId, clipText, MessageType.CMD));
+				term.focus()
+			})
+			break;
+		default:
+
+	}
+}
+const handleContextRightClickMenu=(e)=>{
+	e.preventDefault()
+	showRightClickMenuRef.value = false
+	nextTick().then(() => {
+		showRightClickMenuRef.value = true
+		rightClickMenuX.value = e.clientX
+		rightClickMenuY.value = e.clientY
+	})
+}
 
 /* 下拉菜单 */
 const dropdownMenu = ref(null);
