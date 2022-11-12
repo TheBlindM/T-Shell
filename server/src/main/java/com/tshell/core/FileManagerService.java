@@ -32,7 +32,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-
 /**
  * 文件管理Service
  *
@@ -84,10 +83,16 @@ public class FileManagerService {
         return getTyConnector(channelId).getFileManager();
     }
 
-    private TtyConnector getTyConnector(String channelId) {
-        TtyConnector tyConnector =ttyConnectorPool.getConnector(channelId);
-        Assert.isTrue(tyConnector.isConnected(), "当前通道已关闭");
+    private TtyConnector getTyConnector(String channelId, boolean mustBeConnected) {
+        TtyConnector tyConnector = ttyConnectorPool.getConnector(channelId);
+        if (mustBeConnected) {
+            Assert.isTrue(tyConnector.isConnected(), "当前通道已关闭");
+        }
         return tyConnector;
+    }
+
+    private TtyConnector getTyConnector(String channelId) {
+        return getTyConnector(channelId, true);
     }
 
     public void updateContent(String channelId, String path, String content) {
@@ -124,7 +129,7 @@ public class FileManagerService {
 
         // todo 当前处理Windows系统
         String fileName = FileUtil.getName(path);
-        String savePath = Path.of(System.getProperty("user.home"),"Desktop",fileName).toString();
+        String savePath = Path.of(System.getProperty("user.home"), "Desktop", fileName).toString();
 
         TtyConnector ttyConnector = getTyConnector(channelId);
         final String sessionId = ttyConnector.getSessionId();
@@ -260,7 +265,6 @@ public class FileManagerService {
     }
 
 
-
     private void updateBreakpoint(String breakpointId) {
         try {
             userTransaction.begin();
@@ -275,7 +279,7 @@ public class FileManagerService {
 
     @Transactional(rollbackOn = Exception.class)
     public void pauseTransfer(String channelId) {
-        TtyConnector ttyConnector = getTyConnector(channelId);
+        TtyConnector ttyConnector = getTyConnector(channelId,false);
         String sessionId = ttyConnector.getSessionId();
 
         List<TransferRecord> transferRecords = TransferRecord.<TransferRecord>list("sessionId =?1 and status =?2 ", sessionId, TransferRecord.Status.PROCESS);
