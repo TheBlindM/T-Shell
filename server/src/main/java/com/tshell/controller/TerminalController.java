@@ -74,12 +74,6 @@ public class TerminalController {
     }
 
 
-    @Path("/fileInfos/{channelId}")
-    @GET
-    public BaseResponse<List<FileInfo>> getFileInfos(@PathParam("channelId") String channelId, @QueryParam("path") String path) {
-        return BaseResponse.ok(terminalService.getFileInfos(channelId, path));
-    }
-
     @Path("/sessionCount/{channelId}")
     @GET
     public BaseResponse<Integer> getSessionCount(@PathParam("channelId") String channelId) {

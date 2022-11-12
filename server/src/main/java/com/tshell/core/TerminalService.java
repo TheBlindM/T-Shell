@@ -114,7 +114,7 @@ public class TerminalService {
                         break;
                     }
                 } catch (IOException e) {
-                    msgHandle.accept("通道异常关闭:"+e.getMessage());
+                    msgHandle.accept("通道异常关闭:" + e.getMessage());
                     throw new RuntimeException(e);
                 }
                 msgHandle.accept(new String(buffer, 0, i));
@@ -150,10 +150,6 @@ public class TerminalService {
         return getTyConnector(channelId).getTtyOsType();
     }
 
-    public List<FileInfo> getFileInfos(String channelId, String path) {
-        List<FileInfo> fileInfos = getTyConnector(channelId).getFileManager().fileInfos(path);
-        return fileInfos.stream().sorted(Comparator.comparing(FileInfo::type)).toList();
-    }
 
     private TtyConnector getTyConnector(String channelId) {
         return Optional.ofNullable(ttyConnectorPool.getConnector(channelId)).orElseThrow();
