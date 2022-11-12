@@ -110,14 +110,16 @@ public class TerminalService {
             while (true) {
                 try {
                     if ((i = ttyConnector.read(buffer)) == -1) {
+                        msgHandle.accept("当前通道已关闭");
                         break;
                     }
                 } catch (IOException e) {
-                    msgHandle.accept("会话已经关闭");
+                    msgHandle.accept("通道异常关闭:"+e.getMessage());
                     throw new RuntimeException(e);
                 }
                 msgHandle.accept(new String(buffer, 0, i));
             }
+
         });
     }
 
