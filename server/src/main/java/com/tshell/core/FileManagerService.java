@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
 import com.tshell.core.task.TaskExecutor;
 import com.tshell.core.tty.TtyConnector;
@@ -84,7 +85,9 @@ public class FileManagerService {
     }
 
     private TtyConnector getTyConnector(String channelId) {
-        return ttyConnectorPool.getConnector(channelId);
+        TtyConnector tyConnector =ttyConnectorPool.getConnector(channelId);
+        Assert.isTrue(tyConnector.isConnected(), "当前通道已关闭");
+        return tyConnector;
     }
 
     public void updateContent(String channelId, String path, String content) {
