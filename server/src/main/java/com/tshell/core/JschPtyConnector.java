@@ -109,7 +109,9 @@ public final class JschPtyConnector implements TtyConnector {
 
     @Override
     public void close() {
-        this.shellChannel.disconnect();
+        if (this.isConnected()) {
+            this.shellChannel.disconnect();
+        }
     }
 
     @Override
