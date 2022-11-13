@@ -61,7 +61,12 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+			"dialog": true,
+			"endpoints": [
+				"https://raw.githubusercontent.com/TheBlindM/tshell-update-info/main/update.json"
+			],
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3MjMwOEZGN0MyRTlEREMKUldUY25TNTgvd2dqVitsR0NPK2p5U0hKYmJTRk5JUmQ1aENuYjVNN2poTGpNWDVOSjJiQ1BEeHEK"
     },
     "windows": [
       {
