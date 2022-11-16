@@ -162,8 +162,11 @@ public class FileManagerService {
         }
     }
 
-
     private void doDownload(TransferInfo transferInfo, String channelId) {
+        this.doDownload(transferInfo, channelId, null);
+    }
+
+    private void doDownload(TransferInfo transferInfo, String channelId, Runnable callBack) {
 
         TransferRecord transferRecord = transferInfo.transferRecord;
         List<Breakpoint> breakpoints = transferInfo.breakpoints();
@@ -200,6 +203,9 @@ public class FileManagerService {
                 }
                 transferRecord.setStatus(TransferRecord.Status.COMPLETE);
                 updateTransferRecord(transferRecord);
+                if (Objects.nonNull(callBack)) {
+                    callBack.run();
+                }
             } catch (IOException e) {
                 log.error("doUpload  channelId{} transferRecord：{} fileName：{}  offset：{} error:{}", channelId, transferRecord.id, transferRecord.getFileName(), current[0], e);
             } finally {
@@ -279,7 +285,7 @@ public class FileManagerService {
 
     @Transactional(rollbackOn = Exception.class)
     public void pauseTransfer(String channelId) {
-        TtyConnector ttyConnector = getTyConnector(channelId,false);
+        TtyConnector ttyConnector = getTyConnector(channelId, false);
         String sessionId = ttyConnector.getSessionId();
 
         List<TransferRecord> transferRecords = TransferRecord.<TransferRecord>list("sessionId =?1 and status =?2 ", sessionId, TransferRecord.Status.PROCESS);
