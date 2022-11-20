@@ -18,7 +18,6 @@
       <n-scrollbar class="flex-1-hidden">
         <Host v-if="props.name === 'host'" />
         <OsType v-else-if="props.name === 'osType'" />
-        <Cmd v-else-if="props.name === 'cmd'" />
         <ShortcutCmd v-else-if="props.name === 'shortcutCmd'" />
         <GlobalVariable v-else-if="props.name === 'globalVariable'" />
       </n-scrollbar>
@@ -30,7 +29,7 @@
 import { computed } from 'vue';
 import { useAppStore, useThemeStore } from '@/store';
 import { useAppInfo } from '@/composables';
-import { Host, OsType, Cmd, ShortcutCmd,GlobalVariable } from '@/layouts/common/shell';
+import { Host,ShortcutCmd,GlobalVariable } from '@/layouts/common/shell';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
 
 defineOptions({ name: 'MixMenuDrawer' });
