@@ -3,7 +3,6 @@ package com.tshell.core;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.watch.SimpleWatcher;
@@ -38,7 +37,6 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -421,30 +419,17 @@ public class FileManagerService {
 
 
     public void openFile(String channelId, String path) {
-
         String fileName = FileUtil.getName(path);
         String savePath = Path.of(tempDir, fileName).toString();
-        TtyConnector ttyConnector = getTyConnector(channelId);
-        final String sessionId = ttyConnector.getSessionId();
         FileManager fileManager = getFileManager(channelId);
-
         tempFileInfoCache.remove(fileName);
-        TimeInterval timer = cn.hutool.core.date.DateUtil.timer();
-
         fileManager.read(path, (inputStream) -> {
             try (var out = new FileOutputStream(savePath)) {
-                //inputStream.transferTo(out); 150
-                // 122
                 IoUtil.copyByNIO(inputStream, out, 1024, null);
-                //耗时37594
-                // IoUtil.copy(inputStream, out);
                 // todo 暂时AWT 用不了,所以优先考虑windows
                 RuntimeUtil.exec("cmd /c start " + savePath);
                 tempFileInfoCache.put(fileName, new TemInfo(channelId, savePath, path));
                 watchTempFile();
-                long interval = timer.intervalMs();
-
-                System.out.println("耗时" + interval);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
