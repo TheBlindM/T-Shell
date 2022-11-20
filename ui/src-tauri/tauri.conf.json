@@ -36,7 +36,7 @@
         "icons/shell-icon.icns",
         "icons/shell-icon.ico"
       ],
-      "identifier": "TheBlind",
+      "identifier": "com.theBlind.tShell",
       "longDescription": "T-Shell",
       "macOS": {
         "entitlements": null,
