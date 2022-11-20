@@ -28,7 +28,6 @@ public class TransferRecord extends PanacheEntityBase {
     @GeneratedValue(generator = "nanoId")
     public String id;
     private String sessionId;
-    private String fileName;
     private String createTime;
     private String readPath;
     private String writePath;

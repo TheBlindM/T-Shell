@@ -23,5 +23,6 @@ public class AppLifecycleBean {
     void onStop(@Observes ShutdownEvent ev) {
         log.info("The application is stopping...");
         fileManagerService.saveAllBreakpoint();
+        fileManagerService.deleteTempDir();
     }
 }

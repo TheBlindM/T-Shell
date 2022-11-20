@@ -20,6 +20,7 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.NoSuchFileException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -189,11 +190,11 @@ public final class JschPtyConnector implements TtyConnector {
         }
 
         @Override
-        public void updateContent(String path, String content) {
+        public void updateContent(String writePath, String readPath) {
             ChannelSftp sftpChannel = getSftpChannel();
-            try {
-                sftpChannel.put(new ByteArrayInputStream(content.getBytes()), path, ChannelSftp.OVERWRITE);
-            } catch (SftpException e) {
+            try (BufferedInputStream inputStream = FileUtil.getInputStream(new File(readPath))) {
+                sftpChannel.put(inputStream, writePath, ChannelSftp.OVERWRITE);
+            } catch (SftpException | IOException e) {
                 throw new RuntimeException(e);
             } finally {
                 CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
@@ -202,13 +203,13 @@ public final class JschPtyConnector implements TtyConnector {
 
 
         @Override
-        public void upload(String dir, String fileName, Consumer<OutputStream> consumer, long offset) {
+        public void upload(String path, Consumer<OutputStream> consumer, long offset) {
             String separator = clientHandler.getSeparator();
-            if (dir == null) {
-                dir = separator;
+            if (path == null) {
+                path = separator;
             }
 
-            String completePath = dir.endsWith(separator) ? dir + fileName : dir + separator + fileName;
+            String completePath = path;
             ChannelSftp sftpChannel = getSftpChannel();
             TimeInterval timer = cn.hutool.core.date.DateUtil.timer();
             try {
@@ -324,6 +325,27 @@ public final class JschPtyConnector implements TtyConnector {
                     throw new RuntimeException(e);
                 }
             }, completePath);
+        }
+
+        /**
+         * 获取文件信息
+         *
+         * @param path 文件路径
+         * @return 文件信息列表
+         */
+        @Override
+        public FileInfo fileInfo(String path) {
+            return fileInfos(path).stream().findFirst().orElseThrow();
+        }
+
+        /**
+         * 返回名称分隔符，表示为字符串
+         *
+         * @return 分隔符
+         */
+        @Override
+        public String getSeparator() {
+            return clientHandler.getSeparator();
         }
     }
 

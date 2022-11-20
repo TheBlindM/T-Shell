@@ -5,7 +5,7 @@ import com.tshell.core.FileInfo;
 import com.tshell.core.FileManagerService;
 import com.tshell.module.dto.fileManager.CreateDTO;
 import com.tshell.module.dto.fileManager.UploadDTO;
-import com.tshell.module.entity.TransferRecord;
+import com.tshell.module.vo.CompleteTransferRecordVO;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 
 import javax.inject.Inject;
@@ -109,7 +109,7 @@ public class FileManagerController {
 
     @Path("/completeList/{channelId}")
     @GET
-    public BaseResponse<List<TransferRecord>> getCompleteList(@PathParam("channelId") String channelId) {
+    public BaseResponse<List<CompleteTransferRecordVO>> getCompleteList(@PathParam("channelId") String channelId) {
         return BaseResponse.ok(fileManagerService.getCompleteList(channelId));
     }
 
@@ -137,6 +137,14 @@ public class FileManagerController {
     @Transactional(rollbackOn = Exception.class)
     public BaseResponse<Boolean> deleteRecord(@PathParam("transferRecordId") String transferRecordId) {
         fileManagerService.deleteRecord(transferRecordId);
+        return BaseResponse.ok(true);
+    }
+
+    @GET
+    @Path("/openFile/{channelId}")
+    @Transactional(rollbackOn = Exception.class)
+    public BaseResponse<Boolean> openFile(@PathParam("channelId") String channelId, @QueryParam("path") String path) {
+        fileManagerService.openFile(channelId, path);
         return BaseResponse.ok(true);
     }
 

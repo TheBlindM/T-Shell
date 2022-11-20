@@ -243,6 +243,7 @@ import {
   deleteRecord
 } from '@/theblind_shell/service/shell/fileManager';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
+import {openFile} from "../../../../theblind_shell/service/shell/fileManager";
 
 const enableTableLoading = ref(false);
 const props = defineProps({ channelId: String });
@@ -563,7 +564,9 @@ const rowProps = row => {
       if (row.type === 'DIRECTORY') {
         jumpPath(row.path);
         addHistoryPath(row.path);
-      }
+      } else if (row.type === 'FILE') {
+				openFile(props.channelId,row.path);
+			}
     },
     onContextmenu: e => {
       e.preventDefault();

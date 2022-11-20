@@ -70,3 +70,7 @@ export function getUploadList(channelId: string) {
 export function deleteRecord(transferRecordId: string) {
   return request.delete<any>(`/fileManager/record/${transferRecordId}`);
 }
+
+export function openFile(channelId: string, path: string) {
+  return request.get<any>(`/fileManager/openFile/${channelId}`, { params: {path} });
+}

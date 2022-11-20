@@ -2,6 +2,7 @@ package com.tshell.core;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -35,12 +36,11 @@ public interface FileManager {
     /**
      * 上传文件
      *
-     * @param dir      所在目录
-     * @param fileName 文件名称
+     * @param path     所在目录
      * @param consumer 处理OutputStream
      * @param offset   偏移量
      */
-    void upload(String dir, String fileName, Consumer<OutputStream> consumer, long offset);
+    void upload(String path, Consumer<OutputStream> consumer, long offset);
 
     /**
      * 移除文件
@@ -64,6 +64,7 @@ public interface FileManager {
      * @param newName 新名称
      */
     void rename(String oldPath, String newName);
+
 
 
     /**
@@ -99,5 +100,22 @@ public interface FileManager {
      * @return 文件信息列表
      */
     List<FileInfo> fileInfos(String path);
+
+
+    /**
+     * 获取文件信息
+     *
+     * @param path 文件路径
+     * @return 文件信息列表
+     */
+    FileInfo fileInfo(String path) ;
+
+
+    /**
+     * 返回名称分隔符，表示为字符串
+     *
+     * @return 分隔符
+     */
+    String getSeparator();
 
 }
