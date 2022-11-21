@@ -364,7 +364,7 @@ public class FileManagerService {
     public List<CompleteTransferRecordVO> getCompleteList(String channelId) {
         TtyConnector ttyConnector = getTyConnector(channelId);
         String sessionId = ttyConnector.getSessionId();
-        return TransferRecord.<TransferRecord>list("sessionId =?1 and status =?2", sessionId, TransferRecord.Status.COMPLETE).stream().map((transferRecord) -> new CompleteTransferRecordVO(transferRecord.getId(), FileUtil.getName(transferRecord.getReadPath()), transferRecord.getSessionId(), transferRecord.getCreateTime(), transferRecord.getReadPath(), transferRecord.getWritePath(), transferRecord.getOperate())).toList();
+        return TransferRecord.<TransferRecord>list("sessionId =?1 and status =?2 order by createTime desc", sessionId, TransferRecord.Status.COMPLETE).stream().map((transferRecord) -> new CompleteTransferRecordVO(transferRecord.getId(), FileUtil.getName(transferRecord.getReadPath()), transferRecord.getSessionId(), transferRecord.getCreateTime(), transferRecord.getReadPath(), transferRecord.getWritePath(), transferRecord.getOperate())).toList();
     }
 
 
