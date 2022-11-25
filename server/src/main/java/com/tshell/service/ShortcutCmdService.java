@@ -214,6 +214,7 @@ public class ShortcutCmdService {
                     AND sc.name != :name
                    AND sc.name LIKE :likeName 
                    group by sc.id
+                   limit 3  
                    """;
 
         Query nativeQuery = em.createNativeQuery(sql, ShortcutCmd.class);

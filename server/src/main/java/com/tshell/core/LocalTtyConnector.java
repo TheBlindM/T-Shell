@@ -4,6 +4,7 @@ package com.example.core;
 import com.pty4j.PtyProcess;
 import com.pty4j.PtyProcessBuilder;
 import com.pty4j.WinSize;
+import com.tshell.core.tty.TtyConnector;
 import org.apache.sshd.common.util.OsUtils;
 
 import java.io.*;
@@ -11,11 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-*/
-/**
- * @author TheBlind
- * @date 2022/7/21
- *//*
 
 public class LocalTtyConnector implements TtyConnector {
 
@@ -27,6 +23,7 @@ public class LocalTtyConnector implements TtyConnector {
     private PtyProcess myProcess;
 
     public LocalTtyConnector(Parameter parameter) {
+
         try {
             Map<String, String> envs = System.getenv();
             String[] command;

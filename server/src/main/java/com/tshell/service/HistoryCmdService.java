@@ -65,6 +65,7 @@ public class HistoryCmdService {
                   AND hc.cmdText LIKE :likeCmdText
                   group by hc.cmdText
                   order by length(hc.cmdText)
+                  limit 3 
                   """;
 
 
