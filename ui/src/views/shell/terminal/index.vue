@@ -3,7 +3,6 @@
     <div id="container" style="height: 95.7%">
       <div :id="`terminal${channelId}`" class="h-full" @contextmenu="handleContextRightClickMenu"></div>
       <n-dropdown
-        ref="dropdownMenu"
         :flip="false"
         key-field="value"
         :keyboard="true"
@@ -189,7 +188,6 @@ const handleContextRightClickMenu=(e)=>{
 }
 
 /* 下拉菜单 */
-const dropdownMenu = ref(null);
 const showSearchDropdownRef = ref(false);
 const searchDropdownOptions = ref([]);
 let isInMenuSelection = false;
