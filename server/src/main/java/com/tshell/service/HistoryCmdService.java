@@ -64,7 +64,7 @@ public class HistoryCmdService {
                   AND  hc.cmdText != :cmdText
                   AND hc.cmdText LIKE :likeCmdText
                   group by hc.cmdText
-                  order by length(hc.cmdText)
+                  order by length(hc.cmdText) , hc.createTime desc
                   limit 3 
                   """;
 

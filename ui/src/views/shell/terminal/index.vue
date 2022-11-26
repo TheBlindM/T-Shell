@@ -48,6 +48,7 @@
       :show-icon="false"
       aria-modal="true"
       @contextmenu="disabledContextMenu"
+      :on-after-leave="terminalFocus()"
     >
       <HistoryCmd :session-id="sessionId" session-type="0" />
     </n-modal>
@@ -60,6 +61,7 @@
       :show-icon="false"
       aria-modal="true"
       @contextmenu="disabledContextMenu"
+			:on-after-leave="terminalFocus()"
     >
       <FileManager :channel-id="channelId" />
     </n-modal>
@@ -130,6 +132,12 @@ let fitAddon = null;
 let webSocket;
 
 let currentOptionValue;
+
+
+const terminalFocus=()=>{
+	term?.focus();
+}
+
 /* 展示快捷命令中 匹配的item */
 const activePlaceholder = ref(false);
 const placeholderItems = ref();
@@ -138,6 +146,7 @@ const onPlaceholderClick = () => {
   parseTemplate(currentOptionValue, channelId, placeholderItems.value);
   activePlaceholder.value = false;
 };
+
 
 // 右键菜单
 const showRightClickMenuRef=ref(false);
@@ -162,7 +171,7 @@ const handleRightClickMenuSelect=(key)=>{
 		case 'paste':
 			navigator.clipboard.readText().then(clipText => {
 				webSocket?.sendJsonMessage(new Msg(channelId, clipText, MessageType.CMD));
-				term.focus()
+				terminalFocus();
 			})
 			break;
 		default:
@@ -338,6 +347,7 @@ onBeforeMount(() => {
 
 onActivated(() => {
   window.console.info('onActivated');
+	terminalFocus();
   fitAddon.fit();
 });
 
