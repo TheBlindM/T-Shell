@@ -1,5 +1,7 @@
 package com.tshell.socket;
 
+import cn.hutool.cache.CacheUtil;
+import cn.hutool.cache.impl.TimedCache;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +26,11 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class WebSocket {
 
+    static final TimedCache<String, Object> timedCache = CacheUtil.newTimedCache(1000);
+    private static Session session;
     final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+    @Inject
+    ShellSocketHandler shellSocketHandler;
 
     @RegisterForReflection
     public enum MsgType {
@@ -43,11 +49,9 @@ public class WebSocket {
     }
 
 
-    private static Session session;
-    @Inject
-    ShellSocketHandler shellSocketHandler;
-
-
+    /**
+     * @param msg 消息
+     */
     public static void sendMsg(Msg msg) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -57,8 +61,41 @@ public class WebSocket {
         }
     }
 
+    /**
+     * 发送消息
+     * @param channelId 通道id
+     * @param msgType 消息类型
+     * @param message 消息
+     */
     public static void sendMsg(String channelId, MsgType msgType, String message) {
         sendMsg(new Msg(channelId, msgType, message));
+    }
+
+
+    /**
+     * 发送间隔消息,避免消息发送太过频繁,默认为1000
+     * @param channelId 通道id
+     * @param msgType 消息类型
+     * @param message 消息
+     * @param key 缓存key
+     */
+    public static void sendIntervalMsg(String channelId, MsgType msgType, String message, String key) {
+        sendIntervalMsg(channelId, msgType, message, key,1000);
+    }
+
+    /**
+     * 发送间隔消息,避免消息发送太过频繁
+     * @param channelId 通道id
+     * @param msgType 消息类型
+     * @param message 消息
+     * @param key 缓存key
+     * @param timeout 超时时间
+     */
+    public static void sendIntervalMsg(String channelId, MsgType msgType, String message, String key, long timeout) {
+        if (!timedCache.containsKey(key)) {
+            timedCache.put(key, null, timeout);
+            sendMsg(new Msg(channelId, msgType, message));
+        }
     }
 
     @OnOpen
