@@ -1,4 +1,3 @@
-import UAParser from 'ua-parser-js';
 import { useAuthStore } from '@/store';
 import { isArray, isString } from '@/utils';
 
@@ -22,12 +21,6 @@ export function useAppInfo(): AppInfo {
   };
 }
 
-/** 获取设备信息 */
-export function useDeviceInfo() {
-  const parser = new UAParser();
-  const result = parser.getResult();
-  return result;
-}
 
 /** 权限判断 */
 export function usePermission() {

@@ -1,7 +1,7 @@
 <template>
   <dark-mode-container class="global-tab flex-y-center w-full pl-16px" :style="{ height: theme.tab.height + 'px' }">
     <div ref="bsWrapper" class="flex-1-hidden h-full">
-      <better-scroll ref="bsScroll" :options="{ scrollX: true, scrollY: false, click: canClick }">
+      <better-scroll ref="bsScroll" :options="{ scrollX: true, scrollY: false}">
         <tab-detail @scroll="handleScroll" />
       </better-scroll>
     </div>
@@ -14,7 +14,6 @@ import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useElementBounding } from '@vueuse/core';
 import { useThemeStore, useTabStore } from '@/store';
-import { useDeviceInfo } from '@/composables';
 import { TabDetail, ReloadButton } from './components';
 
 defineOptions({ name: 'GlobalTab' });
@@ -22,14 +21,12 @@ defineOptions({ name: 'GlobalTab' });
 const route = useRoute();
 const theme = useThemeStore();
 const tab = useTabStore();
-const deviceInfo = useDeviceInfo();
 
 const bsWrapper = ref<HTMLElement>();
 const { width: bsWrapperWidth, left: bsWrapperLeft } = useElementBounding(bsWrapper);
 
 const bsScroll = ref<Expose.BetterScroll>();
 
-const canClick = Boolean(deviceInfo.device.type);
 
 function handleScroll(clientX: number) {
   const currentX = clientX - bsWrapperLeft.value;
