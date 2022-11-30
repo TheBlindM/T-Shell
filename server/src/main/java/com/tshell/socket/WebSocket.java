@@ -34,7 +34,7 @@ public class WebSocket {
 
     @RegisterForReflection
     public enum MsgType {
-        PROGRESS, CMD, RETRIEVE_CMD
+        PROGRESS, CMD, RETRIEVE_CMD,OPEN_FILE
     }
 
     @RegisterForReflection
