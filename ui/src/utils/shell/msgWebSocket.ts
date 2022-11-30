@@ -1,4 +1,5 @@
 import { WebSocketClient } from '@/utils';
+import { invoke } from '@tauri-apps/api/tauri'
 
 export class MsgWebSocket {
   webSocket: WebSocketClient;
@@ -23,7 +24,14 @@ export class MsgWebSocket {
       },
       onData(data) {
         const acceptMsg: Msg = JSON.parse(data);
-        localEvents[`${acceptMsg.channelId}-${acceptMsg.msgType}`](acceptMsg.message);
+				// eslint-disable-next-line eqeqeq
+				if(acceptMsg.msgType=='OPEN_FILE'){
+					console.log(acceptMsg.message)
+					invoke('openFile', { path: acceptMsg.message })
+				}else {
+					localEvents[`${acceptMsg.channelId}-${acceptMsg.msgType}`](acceptMsg.message);
+				}
+
       }
     });
   }

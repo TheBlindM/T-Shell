@@ -19,6 +19,7 @@ import com.tshell.module.dto.fileManager.UploadDTO;
 import com.tshell.module.entity.Breakpoint;
 import com.tshell.module.entity.TransferRecord;
 import com.tshell.module.vo.CompleteTransferRecordVO;
+import com.tshell.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -426,8 +427,7 @@ public class FileManagerService {
         fileManager.read(path, (inputStream) -> {
             try (var out = new FileOutputStream(savePath)) {
                 IoUtil.copyByNIO(inputStream, out, 1024, null);
-                // todo 暂时AWT 用不了,所以优先考虑windows
-                RuntimeUtil.exec("cmd /c start " + savePath);
+                WebSocket.sendIntervalMsg(channelId, WebSocket.MsgType.OPEN_FILE,savePath,path);
                 tempFileInfoCache.put(fileName, new TemInfo(channelId, savePath, path));
                 watchTempFile();
             } catch (IOException e) {
