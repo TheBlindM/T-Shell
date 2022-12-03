@@ -25,13 +25,16 @@
             style="display: inline-block"
           >
             <n-tag
-              style="user-select: none"
+              style="user-select: none; "
               type="info"
               closable
               @close="cmdImplTagClose(index)"
               @dblclick="cmdImplTagEdit(index)"
             >
-              {{ `${tag.cmdTemplate}[${tag.shortcutCmdTtyTypeNameList.join(',')}]` }}
+							<n-ellipsis style="max-width: 100px">
+								{{tag.cmdTemplate}}
+							</n-ellipsis>
+              {{ `[${tag.shortcutCmdTtyTypeNameList.join(',')}]` }}
             </n-tag>
           </div>
 
