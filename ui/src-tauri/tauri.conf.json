@@ -1,14 +1,14 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "",
+    "beforeBuildCommand": "cross-env VITE_SERVICE_ENV=prod vite build",
     "beforeDevCommand": "cross-env VITE_SERVICE_ENV=dev vite",
     "devPath": "http://localhost:3200",
     "distDir": "../dist"
   },
   "package": {
     "productName": "T-Shell",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "tauri": {
     "allowlist": {
