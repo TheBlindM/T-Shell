@@ -148,5 +148,13 @@ public class FileManagerController {
         return BaseResponse.ok(true);
     }
 
+    @DELETE
+    @Path("/openFile")
+    @Transactional(rollbackOn = Exception.class)
+    public BaseResponse<Boolean> cancelOpenFile(@QueryParam("taskId") String taskId) {
+        fileManagerService.cancelOpenFile(taskId);
+        return BaseResponse.ok(true);
+    }
+
 
 }

@@ -74,3 +74,7 @@ export function deleteRecord(transferRecordId: string) {
 export function openFile(channelId: string, path: string) {
   return request.get<any>(`/fileManager/openFile/${channelId}`, { params: {path} });
 }
+
+export function cancelOpenFile(taskId: string) {
+	return request.delete<any>(`/fileManager/openFile`,{ params: {taskId} });
+}

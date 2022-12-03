@@ -4,13 +4,13 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.watch.SimpleWatcher;
 import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.io.watch.watchers.DelayWatcher;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.RuntimeUtil;
+import cn.hutool.crypto.digest.MD5;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tshell.core.task.TaskExecutor;
 import com.tshell.core.tty.TtyConnector;
 import com.tshell.core.tty.TtyConnectorPool;
@@ -23,6 +23,7 @@ import com.tshell.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import javax.transaction.UserTransaction;
@@ -38,6 +39,8 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 
@@ -56,9 +59,9 @@ public class FileManagerService {
     final String tempDir = Path.of(System.getProperty("user.dir"), "temp").toString();
 
     WatchMonitor watchMonitor = null;
-    final Map<String, TemInfo> tempFileInfoCache = HashMap.newHashMap(2);
+    final Map<String, TempInfo> tempFileInfoCache = HashMap.newHashMap(2);
 
-    record TemInfo(String channelId, String readPath, String writePath) {
+    record TempInfo(String channelId, String readPath, String writePath) {
     }
 
 
@@ -418,23 +421,56 @@ public class FileManagerService {
         return taskExecutor.sessionTaskCount(sessionId);
     }
 
+    @Inject
+    ObjectMapper objectMapper;
+    ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public void openFile(String channelId, String path) {
+
         String fileName = FileUtil.getName(path);
         String savePath = Path.of(tempDir, fileName).toString();
-        FileManager fileManager = getFileManager(channelId);
-        tempFileInfoCache.remove(fileName);
-        fileManager.read(path, (inputStream) -> {
-            try (var out = new FileOutputStream(savePath)) {
-                IoUtil.copyByNIO(inputStream, out, 1024, null);
-                WebSocket.sendIntervalMsg(channelId, WebSocket.MsgType.OPEN_FILE,savePath,path);
-                tempFileInfoCache.put(fileName, new TemInfo(channelId, savePath, path));
-                watchTempFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
 
+        TtyConnector tyConnector = getTyConnector(channelId);
+        FileManager fileManager = tyConnector.getFileManager();
+        String id = "%s-%s".formatted(tyConnector.getSessionId(), path);
+
+        tempFileInfoCache.remove(id);
+        long size = fileManager.getSize(path);
+
+        executorService.execute(() -> {
+            fileManager.read(path, (inputStream) -> {
+
+                try (ReadableByteChannel inChannel = Channels.newChannel(inputStream); WritableByteChannel outChannel = Channels.newChannel(new FileOutputStream(savePath))) {
+
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+                    long offset = 0;
+                    while (inChannel.read(byteBuffer) != -1) {
+                        byteBuffer.flip();
+                        offset += outChannel.write(byteBuffer);
+                        byteBuffer.clear();
+                        double percent = (double) offset / size * 100.0;
+                        Progress progress = new Progress(NumberUtil.round(percent, 2).doubleValue(), channelId, fileName, TransferRecord.Status.PROCESS, id);
+                        WebSocket.sendIntervalMsg(channelId, WebSocket.MsgType.OPEN_FILE_PROGRESS, objectMapper.writeValueAsString(progress), id);
+                        if (pauseList.remove(id)) {
+                            return;
+                        }
+
+                    }
+                    WebSocket.sendMsg(channelId, WebSocket.MsgType.OPEN_FILE_PROGRESS, objectMapper.writeValueAsString(new Progress(100.00, channelId, fileName, TransferRecord.Status.COMPLETE, id)));
+                    WebSocket.sendMsg(channelId, WebSocket.MsgType.OPEN_FILE, savePath);
+                    tempFileInfoCache.put(id, new TempInfo(channelId, savePath, path));
+                    watchTempFile();
+                } catch (IOException e) {
+                    log.error("openFile  channelId{}  fileName：{}  error:{}", channelId, fileName, e);
+                }
+            });
         });
+
+    }
+
+
+    public void cancelOpenFile(String id) {
+        pauseList.add(id);
     }
 
 

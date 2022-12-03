@@ -93,9 +93,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="jsx">
 import {h, nextTick, onActivated, onBeforeMount, onDeactivated, onMounted, ref, watch} from 'vue';
 import { useRoute } from 'vue-router';
+import {useNotification} from "naive-ui";
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import { Icon } from '@iconify/vue';
@@ -108,11 +109,13 @@ import { getMatchItems, parseTemplate } from '@/theblind_shell/service/shell/ret
 import HistoryCmd from '@/views/shell/terminal/components/HistoryCmd.vue';
 import FileManager from '@/views/shell/terminal/components/FileManager.vue';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
+import {cancelOpenFile} from "@/theblind_shell/service/shell/fileManager";
 
 window.console.info('---------------setup-------------');
 const app = useAppStore();
 const route = useRoute();
 const tabStore = useTabStore();
+const notification = useNotification()
 const active = ref(false);
 const activeFileManager = ref(false);
 const { fullPath } = route;
@@ -348,11 +351,47 @@ onActivated(() => {
 	terminalFocus();
   fitAddon.fit();
 });
+const notificationMap=new Map();
 
 onMounted(() => {
   webSocket = shellWebSocket;
 
   window.console.info('onMounted');
+
+	webSocket?.addMonitor(channelId, 'OPEN_FILE_PROGRESS', message => {
+
+
+		window.console.info(`OPEN_FILE_PROGRESS 接收 ${message}`);
+		const msg = JSON.parse(message);
+		const {transferRecordId} = msg;
+		if (notificationMap.has(transferRecordId)) {
+			const dom = notificationMap.get(transferRecordId);
+			if(msg.status==='COMPLETE'){
+				dom.destroy();
+				notificationMap.delete(transferRecordId);
+				return;
+			}
+			dom.content=`正在打开中:${msg.percent}%`;
+
+		}else {
+			const info = notification.create({
+				content: ()=>{
+					return `正在打开中:${msg.percent}%`;
+				},
+				meta: msg.fileName,
+				avatar:()=>{
+          return <Icon class="text-primary" icon="eos-icons:bubble-loading" />;
+				},
+				onClose:()=>{
+					cancelOpenFile(transferRecordId);
+				}
+			});
+			notificationMap.set(transferRecordId,info);
+		}
+
+
+
+	});
   const fontSize = 18;
   term = new Terminal({
     rendererType: 'canvas',
