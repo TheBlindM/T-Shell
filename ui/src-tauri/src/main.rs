@@ -16,9 +16,9 @@ use tauri::api::process::{Command as tauriCommand, CommandEvent};
 #[tauri::command]
 fn openFile(path: String) {
   if cfg!(target_os = "windows"){
-  StdCommand::new("cmd").arg("/c").arg("start").arg(path).creation_flags(0x08000000).spawn().expect("cmd exec error!");
+   StdCommand::new("cmd").arg("/c").arg(format!("start, {}", path)).creation_flags(0x08000000).spawn().expect("cmd exec error!");
   }else{
-   StdCommand::new("sh").arg("-c").arg("start").arg(path).creation_flags(0x08000000).spawn().expect("cmd exec error!");
+   StdCommand::new("sh").arg("-c").arg(format!("start, {}", path)).creation_flags(0x08000000).spawn().expect("cmd exec error!");
   }
 
 }
