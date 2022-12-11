@@ -19,6 +19,7 @@ import com.tshell.module.dto.fileManager.UploadDTO;
 import com.tshell.module.entity.Breakpoint;
 import com.tshell.module.entity.TransferRecord;
 import com.tshell.module.vo.CompleteTransferRecordVO;
+import com.tshell.module.vo.TransferCountVO;
 import com.tshell.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,6 +81,11 @@ public class FileManagerService {
 
 
     final EntityManager entityManager;
+
+
+    @Inject
+    ObjectMapper objectMapper;
+    final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public FileManagerService(EntityManager entityManager, UserTransaction userTransaction, TaskExecutor taskExecutor, TtyConnectorPool ttyConnectorPool) {
 
@@ -235,6 +241,8 @@ public class FileManagerService {
                 transferRecord.setStatus(TransferRecord.Status.COMPLETE);
                 updateTransferRecord(transferRecord);
 
+                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id,FileOperate.GET,transferRecord.getReadPath(), transferRecord.getWritePath())));
+
             } catch (IOException e) {
                 log.error("doUpload  channelId{} transferRecord：{} fileName：{}  offset：{} error:{}", channelId, transferRecord.id, file.getName(), current[0], e);
             } finally {
@@ -284,6 +292,9 @@ public class FileManagerService {
                 }
                 transferRecord.setStatus(TransferRecord.Status.COMPLETE);
                 updateTransferRecord(transferRecord);
+
+
+                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id,FileOperate.PUT, transferRecord.getReadPath(), transferRecord.getWritePath())));
             } catch (IOException e) {
                 log.error("doUpload  channelId{} transferRecord：{} fileName：{}  offset：{} error:{}", channelId, transferRecord.id, transferRecord.getWritePath(), current[0], e);
             } finally {
@@ -389,7 +400,21 @@ public class FileManagerService {
 
 
     public record Progress(double percent, String channelId, String fileName, TransferRecord.Status status,
-                           String transferRecordId) {
+                           String transferRecordId, FileOperate operate,String readPath,String writePath) {
+        public Progress(double percent, String channelId, String fileName, TransferRecord.Status status, String transferRecordId, FileOperate operate, String readPath, String writePath) {
+            this.percent = percent;
+            this.channelId = channelId;
+            this.fileName = fileName;
+            this.status = status;
+            this.transferRecordId = transferRecordId;
+            this.operate = operate;
+            this.readPath = readPath;
+            this.writePath = writePath;
+        }
+
+        public Progress(double percent, String channelId, String fileName, TransferRecord.Status status, String transferRecordId) {
+            this(percent, channelId, fileName, status, transferRecordId, null, null, null);
+        }
     }
 
     private List<Progress> getProgresses(String channelId, FileOperate fileOperate) {
@@ -415,15 +440,15 @@ public class FileManagerService {
 
     }
 
-    public int getTransferCount(String channelId) {
+    public TransferCountVO getTransferTaskCount(String channelId) {
         TtyConnector ttyConnector = getTyConnector(channelId);
         String sessionId = ttyConnector.getSessionId();
-        return taskExecutor.sessionTaskCount(sessionId);
+        long uploadCount = TransferRecord.count("sessionId =?1 and status !=?2 and operate = ?3", sessionId, TransferRecord.Status.COMPLETE, FileOperate.PUT);
+        long downloadCount = TransferRecord.count("sessionId =?1 and status !=?2 and operate = ?3", sessionId, TransferRecord.Status.COMPLETE, FileOperate.GET);
+        long completeCount = TransferRecord.count("sessionId =?1 and status =?2", sessionId, TransferRecord.Status.COMPLETE);
+        return new TransferCountVO((int) uploadCount, (int) downloadCount, (int) completeCount);
     }
 
-    @Inject
-    ObjectMapper objectMapper;
-    ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public void openFile(String channelId, String path) {
 

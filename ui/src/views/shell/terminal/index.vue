@@ -380,7 +380,7 @@ onMounted(() => {
 				},
 				meta: msg.fileName,
 				avatar:()=>{
-          return <Icon class="text-primary" icon="eos-icons:bubble-loading" />;
+					return <Icon class="text-primary" icon="eos-icons:bubble-loading" />;
 				},
 				onClose:()=>{
 					cancelOpenFile(transferRecordId);
@@ -392,6 +392,7 @@ onMounted(() => {
 
 
 	});
+
   const fontSize = 18;
   term = new Terminal({
     rendererType: 'canvas',

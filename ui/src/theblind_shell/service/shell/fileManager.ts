@@ -78,3 +78,6 @@ export function openFile(channelId: string, path: string) {
 export function cancelOpenFile(taskId: string) {
 	return request.delete<any>(`/fileManager/openFile`,{ params: {taskId} });
 }
+export function getTransferTaskCount(channelId: string) {
+	return request.get<any>(`/fileManager/transferTaskCount/${channelId}`);
+}

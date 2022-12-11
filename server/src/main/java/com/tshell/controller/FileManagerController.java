@@ -6,6 +6,7 @@ import com.tshell.core.FileManagerService;
 import com.tshell.module.dto.fileManager.CreateDTO;
 import com.tshell.module.dto.fileManager.UploadDTO;
 import com.tshell.module.vo.CompleteTransferRecordVO;
+import com.tshell.module.vo.TransferCountVO;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 
 import javax.inject.Inject;
@@ -154,6 +155,14 @@ public class FileManagerController {
     public BaseResponse<Boolean> cancelOpenFile(@QueryParam("taskId") String taskId) {
         fileManagerService.cancelOpenFile(taskId);
         return BaseResponse.ok(true);
+    }
+
+
+    @GET
+    @Path("/transferTaskCount/{channelId}")
+    @Transactional(rollbackOn = Exception.class)
+    public BaseResponse<TransferCountVO> getTransferTaskCount(@PathParam("channelId") String channelId) {
+        return BaseResponse.ok(fileManagerService.getTransferTaskCount(channelId));
     }
 
 

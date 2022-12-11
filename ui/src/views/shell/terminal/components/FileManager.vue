@@ -13,7 +13,7 @@
       "
     >
       <div style="display: inline-block; width: 18%">
-        <n-badge :value="0" style="top: -3px">
+        <n-badge :value="transferTaskCount.downloadCount+transferTaskCount.uploadCount" style="top: -3px">
           <n-button style="display: inline-block" @click="clickTransfer">
             <Icon icon="iconoir:data-transfer-both" />
           </n-button>
@@ -81,7 +81,9 @@
       >
         <n-drawer-content>
           <n-tabs type="segment" :on-update:value="startIntervalProgressTask">
-            <n-tab-pane name="upload" tab="上传">
+
+
+            <n-tab-pane name="upload" :tab="tabTitleFormat('上传',transferTaskCount.uploadCount)">
               <div v-for="item in uploadProgressList" :key="item.transferRecordId">
                 <div
                   style="
@@ -116,7 +118,7 @@
                 </div>
               </div>
             </n-tab-pane>
-            <n-tab-pane name="download" tab="下载">
+            <n-tab-pane name="download" :tab="tabTitleFormat('下载',transferTaskCount.downloadCount)">
               <div v-for="item in downloadProgressList" :key="item.transferRecordId">
                 <div
                   style="
@@ -151,7 +153,7 @@
                 </div>
               </div>
             </n-tab-pane>
-            <n-tab-pane name="complete" tab="传输完成">
+            <n-tab-pane name="complete" :tab="tabTitleFormat('传输完成',transferTaskCount.completeCount)">
               <n-list hoverable clickable>
                 <n-list-item v-for="item in completeList" :key="item.id">
                   <div
@@ -224,26 +226,32 @@
 
 <script setup lang="jsx">
 import { h, nextTick, onBeforeUnmount, ref, watch } from 'vue';
-import { useMessage } from 'naive-ui';
+import {useMessage, useNotification} from 'naive-ui';
 import { Icon } from '@iconify/vue';
 import { listen } from '@tauri-apps/api/event';
 import {
-  continueTransfer,
-  create,
-  download,
-  getCompleteList,
-  getDownloadList,
-  getFileInfos,
-  getUploadList,
-  pauseTransfer,
-  removeDirectory,
-  removeFile,
-  rename,
-  upload,
-  deleteRecord
+	continueTransfer,
+	create,
+	download,
+	getCompleteList,
+	getDownloadList,
+	getFileInfos,
+	getUploadList,
+	pauseTransfer,
+	removeDirectory,
+	removeFile,
+	rename,
+	upload,
+	deleteRecord, getTransferTaskCount, cancelOpenFile
 } from '@/theblind_shell/service/shell/fileManager';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
+import {shellWebSocket} from "@/utils/shell/msgWebSocket";
 import {openFile} from "../../../../theblind_shell/service/shell/fileManager";
+
+
+let webSocket = shellWebSocket;
+const notification = useNotification();
+const transferTaskCount=ref({uploadCount:0,downloadCount:0,completeCount:0});
 
 const enableTableLoading = ref(false);
 const props = defineProps({ channelId: String });
@@ -755,12 +763,41 @@ const handleSelect = key => {
     default:
   }
 };
-let webSocket;
 
-const transferRecordsData = ref([]);
+const refreshTransferTaskCount = () => {
+	getTransferTaskCount(props.channelId).then((requestResult)=>{
+		if (requestResult.data) {
+			transferTaskCount.value=requestResult.data;
+		}
+	});
+
+}
+let refreshTransferTaskCountTime;
 
 const init = () => {
+
+	console.log("fileManger init");
   loadFileInfos(currentDirectory.value);
+
+	refreshTransferTaskCountTime = setInterval(() => {
+		refreshTransferTaskCount();
+	}, 500);
+	webSocket?.addMonitor(props.channelId, 'TRANSFER_COMPLETE', message => {
+		window.console.info(`TRANSFER_COMPLETE 接收 ${message}`);
+		const msg = JSON.parse(message);
+
+		notification.create({
+			content: ()=>{
+				return `${msg.operate==='GET'?'下载':'上传'}完成。 路径：${msg.writePath}`;
+			},
+			duration: 8000,
+			meta: msg.fileName,
+			keepAliveOnHover:true,
+			closable:true
+		});
+	});
+
+
 };
 
 const clickTransfer = () => {
@@ -768,11 +805,19 @@ const clickTransfer = () => {
   initProgress('upload');
 };
 
+const tabTitleFormat=(prefix,count)=>{
+	return count==0?prefix:`${prefix}(${count})`
+}
+
 init();
 
 onBeforeUnmount(() => {
   if (timer) {
     clearInterval(timer);
+  }
+
+	if (refreshTransferTaskCountTime) {
+    clearInterval(refreshTransferTaskCountTime);
   }
 });
 </script>
