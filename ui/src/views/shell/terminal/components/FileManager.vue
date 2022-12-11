@@ -472,10 +472,15 @@ const startIntervalProgressTask = value => {
   }, 1000);
 };
 
-listen('tauri://file-drop', async event => {
-  console.log(event);
-  await upload(props.channelId, currentDirectory.value, event.payload);
-});
+let unlisten;
+const initFileDropListen= async ()=>{
+
+	unlisten= 	await listen('tauri://file-drop',  event => {
+		console.log(event);
+		 upload(props.channelId, currentDirectory.value, event.payload);
+	});
+
+}
 
 watch(
   activeDrawer,
@@ -796,7 +801,7 @@ const init = () => {
 			closable:true
 		});
 	});
-
+	initFileDropListen();
 
 };
 
@@ -819,6 +824,9 @@ onBeforeUnmount(() => {
 	if (refreshTransferTaskCountTime) {
     clearInterval(refreshTransferTaskCountTime);
   }
+	if (unlisten) {
+		unlisten();
+	}
 });
 </script>
 
