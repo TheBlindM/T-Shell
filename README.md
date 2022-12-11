@@ -91,6 +91,17 @@
 	<img src="doc/img/varEffect.png">
 </div>
 
+## 文件管理
+支持双击打开,本地编辑、重命名、删除、新增、文件拖动上传等常用操作。（当前版本文件下载默认在桌面）
+<div align="center">
+	<img src="doc/img/openFileManager.jpg">
+</div>
+
+<div align="center">
+	<img src="doc/img/fileManager.gif">
+</div>
+
+
  
 ## 微信
 
