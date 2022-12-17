@@ -11,6 +11,7 @@ import io.smallrye.common.annotation.RunOnVirtualThread;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.validation.constraints.NotBlank;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
@@ -77,8 +78,8 @@ public class FileManagerController {
     @Path("/download/{channelId}")
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public BaseResponse download(@PathParam("channelId") String channelId, @FormParam("path") String path) {
-        fileManagerService.download(channelId, path);
+    public BaseResponse download(@PathParam("channelId") String channelId, @FormParam("path") String path, @FormParam("isDirectory") Boolean isDirectory) {
+        fileManagerService.download(channelId, path,isDirectory);
         return BaseResponse.ok();
     }
 

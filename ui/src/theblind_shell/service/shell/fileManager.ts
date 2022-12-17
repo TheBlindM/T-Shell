@@ -34,10 +34,10 @@ export function removeDirectory(channelId: any, path: string) {
     { headers: { 'Content-Type': EnumContentType.formUrlencoded } }
   );
 }
-export function download(channelId: any, path: any) {
+export function download(channelId: any, path: any,isDirectory:any) {
   return request.post(
     `/fileManager/download/${channelId}`,
-    { path },
+    { path,isDirectory },
     { headers: { 'Content-Type': EnumContentType.formUrlencoded } }
   );
 }

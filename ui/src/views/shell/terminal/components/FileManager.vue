@@ -294,7 +294,7 @@ const fileOptions = [
   },
   {
     label: '下载',
-    key: 'download'
+    key: 'downloadFile'
   },
   {
     label: () => h('span', { style: { color: 'red' } }, '删除'),
@@ -315,6 +315,10 @@ const directoryOptions = [
     label: '重命名',
     key: 'rename'
   },
+	{
+		label: '下载',
+		key: 'downloadDirectory'
+	},
   {
     label: () => h('span', { style: { color: 'red' } }, '删除'),
     key: 'deleteDirectory'
@@ -752,9 +756,12 @@ const handleSelect = key => {
       formValue.value.fileName = null;
       modalOperate = key;
       break;
-    case 'download':
-      download(props.channelId, currentSelectPath);
+    case 'downloadFile':
+      download(props.channelId, currentSelectPath,false);
       break;
+		case 'downloadDirectory':
+			download(props.channelId, currentSelectPath,true);
+			break;
     case 'deleteFile':
       removeFile(props.channelId, currentSelectPath).then(() => {
         loadFileInfos(currentDirectory.value);

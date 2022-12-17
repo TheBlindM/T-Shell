@@ -178,11 +178,16 @@ public final class JschPtyConnector implements TtyConnector {
 
         @Override
         public void create(String dir, String name, FileType type) {
+            // todo 优化传参 直接传一个完整路径
             String separator = clientHandler.getSeparator();
             if (dir == null || "null".equals(dir)) {
                 dir = separator;
             }
-            String completePath = dir.endsWith(separator) ? dir : dir + separator + name;
+            String newName = name;
+            if(!newName.startsWith(separator)){
+                newName = separator + name;
+            }
+            String completePath = dir.endsWith(separator) ? dir : dir + newName;
 
             clientHandler.createFile((cmd) -> {
                 return cn.hutool.extra.ssh.JschUtil.exec(JschSessionPoll.INSTANCE.getSession(sessionId), cmd, StandardCharsets.UTF_8);
@@ -313,18 +318,13 @@ public final class JschPtyConnector implements TtyConnector {
 
         @Override
         public List<FileInfo> fileInfos(String path) {
-            String separator = clientHandler.getSeparator();
-            if (path == null || "null".equals(path)) {
-                path = separator;
-            }
-            String completePath = path.endsWith(separator) ? path : path + separator;
             return clientHandler.getFileInfos((cmd) -> {
                 try {
                     return cn.hutool.extra.ssh.JschUtil.exec(shellChannel.getSession(), cmd, StandardCharsets.UTF_8);
                 } catch (JSchException e) {
                     throw new RuntimeException(e);
                 }
-            }, completePath);
+            }, path);
         }
 
         /**
@@ -347,6 +347,7 @@ public final class JschPtyConnector implements TtyConnector {
         public String getSeparator() {
             return clientHandler.getSeparator();
         }
+
     }
 
 

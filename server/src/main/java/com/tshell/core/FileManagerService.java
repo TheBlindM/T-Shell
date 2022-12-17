@@ -9,7 +9,7 @@ import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.io.watch.watchers.DelayWatcher;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
-import cn.hutool.crypto.digest.MD5;
+import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tshell.core.task.TaskExecutor;
 import com.tshell.core.tty.TtyConnector;
@@ -37,12 +37,14 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -139,11 +141,78 @@ public class FileManagerService {
             String dir = uploadDTO.path();
             File file = FileUtil.file(filePath);
             var fileName = file.getName();
-            String completePath = dir.endsWith(separator) ? dir + fileName : dir + separator + fileName;
+            if (file.isDirectory()) {
+                try (Stream<Path> paths = Files.walk(file.toPath())) {
+                    paths.forEach((path -> {
+                        File internalFile = path.toFile();
+                        String relativePath = transformSeparators(StrUtil.subAfter(FileUtil.getCanonicalPath(internalFile), FileUtil.getAbsolutePath(file.getParentFile()), true), separator);
+                        if (!relativePath.startsWith(separator)) {
+                            relativePath = separator + relativePath;
+                        }
+                        if (internalFile.isDirectory()) {
+                            if (!relativePath.endsWith(separator)) {
+                                relativePath = relativePath + separator;
+                            }
+                            getFileManager(channelId).create(dir, relativePath, FileType.DIRECTORY);
+                        } else {
+                            String completePath = dir + relativePath;
+                            doUpload(TransferInfo.buildTransferInfo(completePath, FileUtil.getCanonicalPath(internalFile), sessionId, file.getTotalSpace(), FileOperate.PUT), channelId);
+                        }
+                    }));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
-            doUpload(TransferInfo.buildTransferInfo(completePath, filePath, sessionId, file.getTotalSpace(), FileOperate.PUT), channelId);
+            } else {
+
+                String completePath = dir.endsWith(separator) ? dir + fileName : dir + separator + fileName;
+                doUpload(TransferInfo.buildTransferInfo(completePath, filePath, sessionId, file.getTotalSpace(), FileOperate.PUT), channelId);
+            }
+
         });
     }
+
+
+    public static String separatorsToUnix(String path) {
+        return path != null && path.indexOf(92) != -1 ? path.replace('\\', '/') : path;
+    }
+
+    public static String separatorsToWindows(String path) {
+        return path != null && path.indexOf(47) != -1 ? path.replace('/', '\\') : path;
+    }
+
+    public static String transformSeparators(String path, String separators) {
+        if (path == null) {
+            return null;
+        } else {
+            return separators.indexOf(92) != -1 ? separatorsToWindows(path) : separatorsToUnix(path);
+        }
+    }
+   /* public String convertSeparators(String path,String separator){
+        PathUtils
+
+        String s3=s2.indexOf(90) != -1?s2.replace(, '/'):;
+        if(s2.indexOf(47) != -1 ){
+           s3= s2.replace('\\', '/');
+        }
+        // 不是 Windows //
+        if(path.indexOf(47) != -1 ){
+           return path.replace('\\', '/') : path;
+        }
+
+        String tempPath=path;
+        String tempSeparator=separator;
+        if(path.indexOf(47) != -1 ){
+            return path.replace('\\', '/') ;
+        }else {
+
+
+        }
+
+
+
+    }*/
+
 
     public void removeFile(String channelId, String path) {
         getFileManager(channelId).removeFile(path);
@@ -162,7 +231,7 @@ public class FileManagerService {
         getFileManager(channelId).rename(oldPath, fileName);
     }
 
-    public void download(String channelId, String path) {
+    public void download(String channelId, String path,boolean isDirectory) {
 
         // todo 当前处理Windows系统
         String fileName = FileUtil.getName(path);
@@ -171,8 +240,22 @@ public class FileManagerService {
         TtyConnector ttyConnector = getTyConnector(channelId);
         final String sessionId = ttyConnector.getSessionId();
         FileManager fileManager = getFileManager(channelId);
-        long size = fileManager.getSize(path);
-        doDownload(TransferInfo.buildTransferInfo(savePath, path, sessionId, size, FileOperate.GET), channelId);
+        if(isDirectory){
+            fileManager.fileInfos(path).forEach(fileInfo -> {
+                String relativePath = transformSeparators(StrUtil.subAfter(fileInfo.path(),path, true), File.separator);
+                String completePath = Path.of(savePath, relativePath).toString();
+                if (fileInfo.type() == FileType.DIRECTORY) {
+                    FileUtil.mkdir(completePath);
+                } else {
+                    long size = fileManager.getSize(fileInfo.path());
+                    doDownload(TransferInfo.buildTransferInfo(completePath, fileInfo.path(), sessionId, size, FileOperate.GET), channelId);
+                }
+            });
+        }else {
+            long size = fileManager.getSize(path);
+            doDownload(TransferInfo.buildTransferInfo(savePath, path, sessionId, size, FileOperate.GET), channelId);
+        }
+
     }
 
     public void deleteRecord(String transferRecordId) {
@@ -241,7 +324,7 @@ public class FileManagerService {
                 transferRecord.setStatus(TransferRecord.Status.COMPLETE);
                 updateTransferRecord(transferRecord);
 
-                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id,FileOperate.GET,transferRecord.getReadPath(), transferRecord.getWritePath())));
+                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id, FileOperate.GET, transferRecord.getReadPath(), transferRecord.getWritePath())));
 
             } catch (IOException e) {
                 log.error("doUpload  channelId{} transferRecord：{} fileName：{}  offset：{} error:{}", channelId, transferRecord.id, file.getName(), current[0], e);
@@ -267,6 +350,7 @@ public class FileManagerService {
         // todo  为以后 多线程做兼容
         Breakpoint breakpoint = breakpoints.get(0);
         breakpointCache.putIfAbsent(breakpoint.getId(), breakpoint);
+
         taskExecutor.submitUpload(sessionId, () -> getFileManager(channelId).upload(writePath, (outputStream) -> {
             File file = FileUtil.file(readPath);
 
@@ -294,7 +378,7 @@ public class FileManagerService {
                 updateTransferRecord(transferRecord);
 
 
-                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id,FileOperate.PUT, transferRecord.getReadPath(), transferRecord.getWritePath())));
+                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id, FileOperate.PUT, transferRecord.getReadPath(), transferRecord.getWritePath())));
             } catch (IOException e) {
                 log.error("doUpload  channelId{} transferRecord：{} fileName：{}  offset：{} error:{}", channelId, transferRecord.id, transferRecord.getWritePath(), current[0], e);
             } finally {
@@ -314,6 +398,7 @@ public class FileManagerService {
             throw new RuntimeException(e);
         }
     }
+
 
 
     private void updateBreakpoint(String breakpointId) {
@@ -371,7 +456,13 @@ public class FileManagerService {
 
 
     public List<FileInfo> fileInfos(String channelId, String path) {
-        List<FileInfo> fileInfos = getFileManager(channelId).fileInfos(path);
+        FileManager fileManager = getFileManager(channelId);
+        String separator = fileManager.getSeparator();
+        if (path == null || "null".equals(path)) {
+            path = separator;
+        }
+        String completePath = path.endsWith(separator) ? path : path + separator;
+        List<FileInfo> fileInfos = fileManager.fileInfos(completePath);
         return fileInfos.stream().sorted(Comparator.comparing(FileInfo::type)).toList();
     }
 
@@ -400,7 +491,7 @@ public class FileManagerService {
 
 
     public record Progress(double percent, String channelId, String fileName, TransferRecord.Status status,
-                           String transferRecordId, FileOperate operate,String readPath,String writePath) {
+                           String transferRecordId, FileOperate operate, String readPath, String writePath) {
         public Progress(double percent, String channelId, String fileName, TransferRecord.Status status, String transferRecordId, FileOperate operate, String readPath, String writePath) {
             this.percent = percent;
             this.channelId = channelId;
