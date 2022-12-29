@@ -145,7 +145,7 @@ public class FileManagerService {
                 try (Stream<Path> paths = Files.walk(file.toPath())) {
                     paths.forEach((path -> {
                         File internalFile = path.toFile();
-                        String relativePath = transformSeparators(StrUtil.subAfter(FileUtil.getCanonicalPath(internalFile), FileUtil.getAbsolutePath(file.getParentFile()), true), separator);
+                        String relativePath = transformFileSeparators(StrUtil.subAfter(FileUtil.getCanonicalPath(internalFile), FileUtil.getAbsolutePath(file.getParentFile()), true), separator);
                         if (!relativePath.startsWith(separator)) {
                             relativePath = separator + relativePath;
                         }
@@ -181,37 +181,13 @@ public class FileManagerService {
         return path != null && path.indexOf(47) != -1 ? path.replace('/', '\\') : path;
     }
 
-    public static String transformSeparators(String path, String separators) {
+    public static String transformFileSeparators(String path, String separators) {
         if (path == null) {
             return null;
         } else {
             return separators.indexOf(92) != -1 ? separatorsToWindows(path) : separatorsToUnix(path);
         }
     }
-   /* public String convertSeparators(String path,String separator){
-        PathUtils
-
-        String s3=s2.indexOf(90) != -1?s2.replace(, '/'):;
-        if(s2.indexOf(47) != -1 ){
-           s3= s2.replace('\\', '/');
-        }
-        // 不是 Windows //
-        if(path.indexOf(47) != -1 ){
-           return path.replace('\\', '/') : path;
-        }
-
-        String tempPath=path;
-        String tempSeparator=separator;
-        if(path.indexOf(47) != -1 ){
-            return path.replace('\\', '/') ;
-        }else {
-
-
-        }
-
-
-
-    }*/
 
 
     public void removeFile(String channelId, String path) {
@@ -242,7 +218,7 @@ public class FileManagerService {
         FileManager fileManager = getFileManager(channelId);
         if(isDirectory){
             fileManager.fileInfos(path).forEach(fileInfo -> {
-                String relativePath = transformSeparators(StrUtil.subAfter(fileInfo.path(),path, true), File.separator);
+                String relativePath = transformFileSeparators(StrUtil.subAfter(fileInfo.path(),path, true), File.separator);
                 String completePath = Path.of(savePath, relativePath).toString();
                 if (fileInfo.type() == FileType.DIRECTORY) {
                     FileUtil.mkdir(completePath);
@@ -541,14 +517,17 @@ public class FileManagerService {
     }
 
 
+
+
     public void openFile(String channelId, String path) {
 
         String fileName = FileUtil.getName(path);
-        String savePath = Path.of(tempDir, fileName).toString();
 
         TtyConnector tyConnector = getTyConnector(channelId);
         FileManager fileManager = tyConnector.getFileManager();
-        String id = "%s-%s".formatted(tyConnector.getSessionId(), path);
+
+        String id = "%s-%s".formatted(tyConnector.getSessionId(), pathEncode(path));
+        String savePath = Path.of(tempDir, id).toString();
 
         tempFileInfoCache.remove(id);
         long size = fileManager.getSize(path);
@@ -574,6 +553,7 @@ public class FileManagerService {
                     }
                     WebSocket.sendMsg(channelId, WebSocket.MsgType.OPEN_FILE_PROGRESS, objectMapper.writeValueAsString(new Progress(100.00, channelId, fileName, TransferRecord.Status.COMPLETE, id)));
                     WebSocket.sendMsg(channelId, WebSocket.MsgType.OPEN_FILE, savePath);
+
                     tempFileInfoCache.put(id, new TempInfo(channelId, savePath, path));
                     watchTempFile();
                 } catch (IOException e) {
@@ -621,5 +601,9 @@ public class FileManagerService {
 
     public void deleteTempDir() {
         FileUtil.del(tempDir);
+    }
+
+    public String pathEncode(String path){
+        return   path.indexOf(47) != -1 ? path.replace('/', '%') : path.replace('\\', '%');
     }
 }
