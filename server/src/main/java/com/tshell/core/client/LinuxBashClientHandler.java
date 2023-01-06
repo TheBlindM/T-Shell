@@ -20,7 +20,7 @@ import static com.tshell.core.FileType.FILE;
 public sealed class LinuxBashClientHandler extends ClientHandler permits LinuxZshClientHandler, UbuntuBashClientHandler {
 
     /**
-     *  软链接标识
+     * 软链接标识
      */
     final char link = 'l';
 
@@ -51,7 +51,9 @@ public sealed class LinuxBashClientHandler extends ClientHandler permits LinuxZs
     @Override
     public List<FileInfo> getFileInfos(Function<String, String> exec, String completePath) {
         // |grep ^d
-        String resultListStr = exec.apply("ls -Al --time-style '+%Y/%m/%d %H:%M' " + completePath);
+        String separator = getSeparator();
+        String selectPath = completePath.endsWith(separator) ? completePath : completePath + separator;
+        String resultListStr = exec.apply("ls -Al --time-style '+%Y/%m/%d %H:%M' " + selectPath);
         List<String> resultList = resultListStr.lines().skip(1).toList();
         List<FileInfo> fileInfos = new ArrayList<>(resultList.size());
         resultList.stream().forEach((line) -> {
@@ -70,7 +72,7 @@ public sealed class LinuxBashClientHandler extends ClientHandler permits LinuxZs
             final int fileNameIndex = 7;
             String fileName = lineSplits[fileNameIndex];
             String modifyDate = String.format("%s %s", lineSplits[5], lineSplits[6]);
-            fileInfos.add(new FileInfo(completePath + fileName, fileName, Long.parseLong(lineSplits[4]), fileType, modifyDate));
+            fileInfos.add(new FileInfo(selectPath + fileName, fileName, Long.parseLong(lineSplits[4]), fileType, modifyDate));
 
         });
         return fileInfos;

@@ -207,7 +207,7 @@ public class FileManagerService {
         getFileManager(channelId).rename(oldPath, fileName);
     }
 
-    public void download(String channelId, String path,boolean isDirectory) {
+    public void download(String channelId, String path, boolean isDirectory) {
 
         // todo 当前处理Windows系统
         String fileName = FileUtil.getName(path);
@@ -216,18 +216,19 @@ public class FileManagerService {
         TtyConnector ttyConnector = getTyConnector(channelId);
         final String sessionId = ttyConnector.getSessionId();
         FileManager fileManager = getFileManager(channelId);
-        if(isDirectory){
+        if (isDirectory) {
             fileManager.fileInfos(path).forEach(fileInfo -> {
-                String relativePath = transformFileSeparators(StrUtil.subAfter(fileInfo.path(),path, true), File.separator);
+                String relativePath = transformFileSeparators(StrUtil.subAfter(fileInfo.path(), path, true), File.separator);
                 String completePath = Path.of(savePath, relativePath).toString();
                 if (fileInfo.type() == FileType.DIRECTORY) {
                     FileUtil.mkdir(completePath);
+                    download(channelId, fileInfo.path(), true);
                 } else {
                     long size = fileManager.getSize(fileInfo.path());
                     doDownload(TransferInfo.buildTransferInfo(completePath, fileInfo.path(), sessionId, size, FileOperate.GET), channelId);
                 }
             });
-        }else {
+        } else {
             long size = fileManager.getSize(path);
             doDownload(TransferInfo.buildTransferInfo(savePath, path, sessionId, size, FileOperate.GET), channelId);
         }
@@ -376,7 +377,6 @@ public class FileManagerService {
     }
 
 
-
     private void updateBreakpoint(String breakpointId) {
         try {
             userTransaction.begin();
@@ -517,8 +517,6 @@ public class FileManagerService {
     }
 
 
-
-
     public void openFile(String channelId, String path) {
 
         String fileName = FileUtil.getName(path);
@@ -603,7 +601,7 @@ public class FileManagerService {
         FileUtil.del(tempDir);
     }
 
-    public String pathEncode(String path){
-        return   path.indexOf(47) != -1 ? path.replace('/', '%') : path.replace('\\', '%');
+    public String pathEncode(String path) {
+        return path.indexOf(47) != -1 ? path.replace('/', '%') : path.replace('\\', '%');
     }
 }
