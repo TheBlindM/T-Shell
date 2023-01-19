@@ -31,6 +31,7 @@
         :y="rightClickMenuY"
         :options="rightClickOptions"
         :show="showRightClickMenuRef"
+				:on-clickoutside="onRightClickMenuClickoutside"
         @select="handleRightClickMenuSelect"
       />
     </div>
@@ -251,6 +252,10 @@ const renderDropdownIcon = option => {
 };
 const onSearchDropdownClickoutside = () => {
   showSearchDropdownRef.value = false;
+};
+
+const onRightClickMenuClickoutside = () => {
+	showRightClickMenuRef.value = false;
 };
 
 let cmdStartIndex = 0;
@@ -587,6 +592,7 @@ onMounted(() => {
       if (showSearchDropdownRef.value) {
         showSearchDropdownRef.value = false;
       }
+			showRightClickMenuRef.value=false;
       cmdTemplate = null;
       isInCommandInput = null;
       isOnInputData = false;
@@ -622,6 +628,7 @@ onDeactivated(() => {
     term.dispose();
   }
   showSearchDropdownRef.value = false;
+	showRightClickMenuRef.value=false;
 });
 
 // 监听 侧边栏固定
