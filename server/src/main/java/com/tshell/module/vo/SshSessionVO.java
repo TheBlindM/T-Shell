@@ -1,5 +1,6 @@
 package com.tshell.module.vo;
 
+import com.tshell.module.enums.AuthType;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
@@ -11,6 +12,9 @@ public record SshSessionVO(
         String pwd,
         int sessionGroupId,
         String sessionName,
-        int ttyTypeId
+        int ttyTypeId,
+        AuthType authType,
+        String privateKeyFile,
+        String passphrase
 ) {
 }

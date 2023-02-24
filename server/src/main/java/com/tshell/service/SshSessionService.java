@@ -20,7 +20,7 @@ public class SshSessionService {
     public SshSessionVO getSingle(String id) {
         Session session = Session.findById(id);
         SshSession sshSession = SshSession.<SshSession>find("sessionId = ?1", id).singleResultOptional().orElseThrow(() -> new WebApplicationException("host with sessionId of not exist", 404));
-        return new SshSessionVO(session.id, sshSession.getIp(), sshSession.getPort(), sshSession.getUsername(), sshSession.getPwd(), session.getSessionGroupId(), session.getSessionName(), session.getTtyTypeId());
+        return new SshSessionVO(session.id, sshSession.getIp(), sshSession.getPort(), sshSession.getUsername(), sshSession.getPwd(), session.getSessionGroupId(), session.getSessionName(), session.getTtyTypeId(),sshSession.getAuthType(),sshSession.getPrivateKeyFile(), sshSession.getPassphrase());
     }
 
     public boolean create(AddSshSessionDTO addSshSessionDTO) {

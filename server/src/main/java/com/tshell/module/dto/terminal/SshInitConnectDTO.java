@@ -15,6 +15,9 @@ public record SshInitConnectDTO(
         @NotNull(message = "ptySize")
         TtySize ttySize,
         @NotNull(message = "sessionId不能为空")
-        String sessionId
+        String sessionId,
+        String username,
+        String pwd
+
 ) {
 }

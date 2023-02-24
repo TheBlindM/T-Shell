@@ -11,11 +11,15 @@ export function sshInitConnect(
   columns: number,
   lines: number,
   width: number,
-  height: number
+  height: number,
+  username: string,
+  pwd: string
 ) {
   return request.post('/terminal/sshInitConnect', {
     sessionId,
     channelId,
+    username,
+    pwd,
     ttySize: { columns, lines, width, height }
   });
 }

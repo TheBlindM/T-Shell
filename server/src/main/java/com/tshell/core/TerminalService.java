@@ -1,5 +1,7 @@
 package com.tshell.core;
 
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.JSch;
 import com.tshell.core.client.TtyType;
 import com.tshell.core.tty.TtyConnectorPool;
 import com.tshell.core.tty.TtyConnector;
@@ -7,6 +9,7 @@ import com.tshell.module.dto.terminal.LocalInitConnectDTO;
 import com.tshell.module.dto.terminal.SshInitConnectDTO;
 import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
+import com.tshell.module.enums.AuthType;
 import com.tshell.service.ConnectionLogService;
 import com.tshell.socket.WebSocket;
 import com.jcraft.jsch.JSchException;
@@ -51,8 +54,24 @@ public class TerminalService {
         sshParameter.setSessionId(sessionId);
         sshParameter.setIp(sshSession.getIp());
         sshParameter.setPort(sshSession.getPort());
-        sshParameter.setUsername(sshSession.getUsername());
-        sshParameter.setPwd(sshSession.getPwd());
+        // 验证方式
+        switch (sshSession.getAuthType()){
+            case PUBLIC_KEY -> {
+                sshParameter.setUsername(sshSession.getUsername());
+                sshParameter.setPrivateKeyFile(sshSession.getPrivateKeyFile());
+                sshParameter.setPassphrase(sshSession.getPassphrase());
+            }
+            case KEYBOARD_INTERACTIVE -> {
+                sshParameter.setUsername(sshInitConnectDTO.username());
+                sshParameter.setPwd(sshInitConnectDTO.pwd());
+            }
+            case PWD -> {
+                sshParameter.setUsername(sshSession.getUsername());
+                sshParameter.setPwd(sshSession.getPwd());
+            }
+        }
+
+        sshParameter.setAuthType(sshSession.getAuthType());
         sshParameter.setChannelId(sshInitConnectDTO.channelId());
         sshParameter.setTtySize(sshInitConnectDTO.ttySize());
         sshParameter.setTtyTypeId(session.getTtyTypeId());
@@ -161,4 +180,23 @@ public class TerminalService {
     }
 
 
+    public static void main(String[] args) throws JSchException {
+        JSch jsch = new JSch();
+        String username = "root";
+        String host = "47.98.56.121";
+        String privateKey = "C:\\Users\\10431\\Desktop\\id_rsa";
+        jsch.addIdentity(privateKey,"123456");
+
+        com.jcraft.jsch.Session session = jsch.getSession(username, host, 22);
+        session.setConfig("StrictHostKeyChecking", "no");
+        session.connect();
+
+        Channel channel = session.openChannel("shell");
+        channel.connect();
+
+        // do your work here
+
+        channel.disconnect();
+        session.disconnect();
+    }
 }

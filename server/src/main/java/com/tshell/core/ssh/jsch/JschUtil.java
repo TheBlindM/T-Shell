@@ -2,6 +2,8 @@ package com.tshell.core.ssh.jsch;
 
 
 
+import cn.hutool.core.lang.Assert;
+import cn.hutool.extra.ssh.JschRuntimeException;
 import com.tshell.utils.StrUtil;
 import com.tshell.utils.io.IoUtil;
 import com.jcraft.jsch.*;
@@ -32,6 +34,18 @@ public class JschUtil {
         return session;
     }
 
+    public static Session openSession(String host, int port, String user, String privateKeyPath, String passphrase, int timeout) {
+        final Session session = createSession(host, port, user, privateKeyPath,passphrase);
+        try {
+            session.connect(timeout);
+        } catch (JSchException e) {
+            System.out.println(e.getMessage());
+        }
+        return session;
+    }
+
+
+
     public static Session createSession(String host, int port, String user, String pass) {
         final JSch jsch = new JSch();
         final Session session = createSession(jsch, host, port, user);
@@ -50,11 +64,17 @@ public class JschUtil {
      * @return SSH会话
      * @since 5.0.0
      */
-    public static Session createSession(String host, int port, String user, String privateKeyPath, byte[] passphrase) throws JSchException {
+    public static Session createSession(String host, int port, String user, String privateKeyPath, String passphrase)  {
         final JSch jsch = new JSch();
-         jsch.addIdentity(privateKeyPath, passphrase);
+        try {
+            jsch.addIdentity(privateKeyPath, passphrase);
+        } catch (JSchException e) {
+            throw new RuntimeException(e);
+        }
         return createSession(jsch, host, port, user);
     }
+
+
 
     public static Session createSession(JSch jSch, String host, int port, String user) {
         Session session = null;

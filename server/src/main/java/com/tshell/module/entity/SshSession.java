@@ -1,6 +1,7 @@
 package com.tshell.module.entity;
 
-import cn.hutool.core.util.StrUtil;
+import com.tshell.config.AuthTypeConverter;
+import com.tshell.module.enums.AuthType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,9 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 /**
  * @author TheBlind
@@ -31,5 +30,10 @@ public class SshSession extends PanacheEntityBase {
     private Integer port;
     private String username;
     private String pwd;
+
+    protected String privateKeyFile;
+    protected String passphrase;
+    @Convert(converter = AuthTypeConverter.class)
+    private AuthType authType;
 
 }

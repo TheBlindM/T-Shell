@@ -1,8 +1,9 @@
 package com.tshell.module.dto.session;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tshell.core.Parameter;
 import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
+import com.tshell.module.enums.AuthType;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -20,8 +21,11 @@ public record AddSshSessionDTO(
         Integer port,
         @NotBlank(message = "主机名称不能为空")
         String username,
-        @NotBlank(message = "密码不能为空")
         String pwd,
+        String privateKeyFile,
+        String passphrase,
+        AuthType authType,
+
         @NotNull(message = "终端类型不能为空")
         Integer ttyTypeId,
         @NotNull(message = "组不能为空")
@@ -32,6 +36,6 @@ public record AddSshSessionDTO(
     }
 
     public SshSession convertSshSession() {
-        return SshSession.builder().ip(ip).port(port).username(username).pwd(pwd).build();
+        return SshSession.builder().ip(ip).port(port).username(username).pwd(pwd).authType(authType).privateKeyFile(privateKeyFile).passphrase(passphrase).build();
     }
 }

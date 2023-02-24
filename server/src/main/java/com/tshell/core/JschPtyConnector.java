@@ -98,8 +98,12 @@ public final class JschPtyConnector implements TtyConnector {
     }
 
     private Session getSession(Parameter.SshParameter parameter, boolean create) {
-        Session session = JschSessionPoll.INSTANCE.getSession(parameter.getSessionId(), parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(), 3000, create);
-        return session;
+        Session session=switch (parameter.authType){
+           case PWD,KEYBOARD_INTERACTIVE-> JschSessionPoll.INSTANCE.getSession(parameter.getSessionId(), parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(), 3000, create);
+           case PUBLIC_KEY ->  JschSessionPoll.INSTANCE.getSession(parameter.getSessionId(), parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(),parameter.getPassphrase(), 3000, create);
+
+        };
+       return session;
     }
 
 

@@ -31,7 +31,7 @@
         :y="rightClickMenuY"
         :options="rightClickOptions"
         :show="showRightClickMenuRef"
-				:on-clickoutside="onRightClickMenuClickoutside"
+        :on-clickoutside="onRightClickMenuClickoutside"
         @select="handleRightClickMenuSelect"
       />
     </div>
@@ -96,6 +96,24 @@
         <n-button @click="onPlaceholderClick">确定</n-button>
       </div>
     </n-modal>
+
+    <n-modal
+      v-model:show="showKeyboardInteractiveModal"
+      transform-origin="center"
+      style="max-height: 320px; width: 400px"
+      preset="dialog"
+      size="huge"
+      :show-icon="false"
+      aria-modal="true"
+    >
+      <div class="wh-full mt-30px">
+        <n-input v-model:value="keyboardInteractive.username" placeholder="输入用户名" />
+        <n-input v-model:value="keyboardInteractive.pwd" type="password" placeholder="输入密码" />
+      </div>
+      <div class="w-full">
+        <n-button class="w-full" @click="onKeyboardInteractiveClick">确定</n-button>
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -116,6 +134,7 @@ import HistoryCmd from '@/views/shell/terminal/components/HistoryCmd.vue';
 import FileManager from '@/views/shell/terminal/components/FileManager.vue';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
 import { cancelOpenFile } from '@/theblind_shell/service/shell/fileManager';
+import { getSingle as getSshSession } from '@/theblind_shell/service/shell/host';
 
 window.console.info('---------------setup-------------');
 const app = useAppStore();
@@ -255,7 +274,7 @@ const onSearchDropdownClickoutside = () => {
 };
 
 const onRightClickMenuClickoutside = () => {
-	showRightClickMenuRef.value = false;
+  showRightClickMenuRef.value = false;
 };
 
 let cmdStartIndex = 0;
@@ -322,7 +341,18 @@ async function initConnect() {
     }
   } else {
     window.console.info('ssh');
-    const resultData = await sshInitConnect(sessionId, channelId, cols, rows, width, height);
+    const sshSessionResult = await getSshSession(sessionId);
+		console.log(sshSessionResult)
+    let resultData = null;
+    if (sshSessionResult.data.authType === 'KEYBOARD_INTERACTIVE') {
+			console.log(sshSessionResult.data.authType)
+			showKeyboardInteractiveModal.value=true;
+
+
+    } else {
+      resultData = await sshInitConnect(sessionId, channelId, cols, rows, width, height, null, null);
+    }
+
     if (resultData.error == null) {
       connectState = true;
     }
@@ -363,6 +393,26 @@ const notificationMap = new Map();
 const onScroll = e => {
   window.console.log(`onScroll:${e}`);
 };
+
+/* 键盘交互 */
+const showKeyboardInteractiveModal=ref(false);
+const keyboardInteractive = ref({username:undefined,pwd:undefined});
+// 连接状态
+let connectState = false;
+const onKeyboardInteractiveClick = () => {
+	const { cols, rows } = term;
+	const width = document.getElementById('container')?.offsetWidth;
+	const height = document.getElementById('container')?.offsetHeight;
+
+		sshInitConnect(sessionId, channelId, cols, rows, width, height,keyboardInteractive.value.username ,keyboardInteractive.value.pwd).then(resultData=>{
+			if (resultData.error == null) {
+				connectState = true;
+				showKeyboardInteractiveModal.value=false;
+			}
+		});
+
+}
+
 
 onMounted(() => {
   webSocket = shellWebSocket;
@@ -440,8 +490,7 @@ onMounted(() => {
   let currentRenderText = '';
   // 是否在输入数据中
   let isOnInputData = false;
-  // 连接状态
-  let connectState = false;
+
   let currentCursorRow;
   // 是否处于 命令输入中
   let isInCommandInput = null;
@@ -592,7 +641,7 @@ onMounted(() => {
       if (showSearchDropdownRef.value) {
         showSearchDropdownRef.value = false;
       }
-			showRightClickMenuRef.value=false;
+      showRightClickMenuRef.value = false;
       cmdTemplate = null;
       isInCommandInput = null;
       isOnInputData = false;
@@ -628,7 +677,7 @@ onDeactivated(() => {
     term.dispose();
   }
   showSearchDropdownRef.value = false;
-	showRightClickMenuRef.value=false;
+  showRightClickMenuRef.value = false;
 });
 
 // 监听 侧边栏固定

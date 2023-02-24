@@ -29,6 +29,19 @@ public enum JschSessionPoll {
         return session;
     }
 
+    public Session getSession(String sessionId, String host, int port, String user, String privateKeyPath, String passphrase, int timeout,boolean create) {
+        Session session = cache.get(sessionId);
+        if (session == null || !session.isConnected()||create) {
+            session = JschUtil.openSession(host, port, user, privateKeyPath,passphrase, timeout);
+            cache.put(sessionId, session);
+            return session;
+        }
+        return session;
+    }
+
+
+
+
     public Session getSession(String sessionId) {
         Session session = cache.get(sessionId);
         Assert.notNull(session, "sessionId  不存在");
