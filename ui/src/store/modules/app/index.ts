@@ -6,6 +6,8 @@ interface AppState {
   reloadFlag: boolean;
   /** 项目配置的抽屉可见状态 */
   settingDrawerVisible: boolean;
+	/** AiChat的抽屉可见状态 */
+	aiChatDrawerVisible: boolean;
   /** 侧边栏折叠状态 */
   siderCollapse: boolean;
   /** vertical-mix模式下 侧边栏的固定状态 */
@@ -20,6 +22,7 @@ export const useAppStore = defineStore('app-store', {
   state: (): AppState => ({
     reloadFlag: true,
     settingDrawerVisible: false,
+		aiChatDrawerVisible: false,
     siderCollapse: false,
     mixSiderFixed: false,
     drawerMouseleaveState: true,
@@ -52,10 +55,18 @@ export const useAppStore = defineStore('app-store', {
     closeSettingDrawer() {
       this.settingDrawerVisible = false;
     },
+		/** 关闭AiChat抽屉 */
+		closeAiChatDrawer() {
+			this.aiChatDrawerVisible = false;
+		},
     /** 切换抽屉可见状态 */
     toggleSettingDrawerVisible() {
       this.settingDrawerVisible = !this.settingDrawerVisible;
     },
+		/** 切换AiChat抽屉可见状态 */
+		toggleAiChatDrawerVisible() {
+			this.aiChatDrawerVisible = !this.aiChatDrawerVisible;
+		},
     /** 设置侧边栏折叠状态 */
     setSiderCollapse(collapse: boolean) {
       this.siderCollapse = collapse;

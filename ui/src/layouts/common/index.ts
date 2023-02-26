@@ -6,5 +6,6 @@ import GlobalContent from './GlobalContent/index.vue';
 import GlobalFooter from './GlobalFooter/index.vue';
 import GlobalLogo from './GlobalLogo/index.vue';
 import GlobalBackTop from './GlobalBackTop/index.vue';
+import AiChat from "./AiChat/index.vue"
 
-export { SettingDrawer, GlobalHeader, GlobalTab, GlobalSider, GlobalContent, GlobalFooter, GlobalLogo, GlobalBackTop };
+export { SettingDrawer, GlobalHeader, GlobalTab, GlobalSider, GlobalContent, GlobalFooter, GlobalLogo, GlobalBackTop,AiChat };

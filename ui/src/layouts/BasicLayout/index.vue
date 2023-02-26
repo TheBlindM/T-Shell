@@ -31,6 +31,7 @@
   </admin-layout>
   <global-back-top />
   <setting-drawer />
+	<ai-chat/>
 </template>
 
 <script setup lang="ts">
@@ -45,7 +46,8 @@ import {
   GlobalSider,
   GlobalContent,
   GlobalFooter,
-  GlobalBackTop
+  GlobalBackTop,
+	AiChat
 } from '../common';
 
 defineOptions({ name: 'BasicLayout' });
