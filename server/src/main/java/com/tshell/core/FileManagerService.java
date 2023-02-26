@@ -13,7 +13,7 @@ import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tshell.core.task.TaskExecutor;
 import com.tshell.core.tty.TtyConnector;
-import com.tshell.core.tty.TtyConnectorPool;
+import com.tshell.core.tty.TtyConnectorManager;
 import com.tshell.module.dto.fileManager.CreateDTO;
 import com.tshell.module.dto.fileManager.UploadDTO;
 import com.tshell.module.entity.Breakpoint;
@@ -68,7 +68,7 @@ public class FileManagerService {
     }
 
 
-    final TtyConnectorPool ttyConnectorPool;
+    final TtyConnectorManager ttyConnectorManager;
 
 
     final TaskExecutor taskExecutor;
@@ -89,12 +89,12 @@ public class FileManagerService {
     ObjectMapper objectMapper;
     final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
-    public FileManagerService(EntityManager entityManager, UserTransaction userTransaction, TaskExecutor taskExecutor, TtyConnectorPool ttyConnectorPool) {
+    public FileManagerService(EntityManager entityManager, UserTransaction userTransaction, TaskExecutor taskExecutor, TtyConnectorManager ttyConnectorManager) {
 
         this.entityManager = entityManager;
         this.userTransaction = userTransaction;
         this.taskExecutor = taskExecutor;
-        this.ttyConnectorPool = ttyConnectorPool;
+        this.ttyConnectorManager = ttyConnectorManager;
         // todo 后期改为延迟加载
         List<Breakpoint> resultList = entityManager.createNativeQuery("select * from Breakpoint where current < end", Breakpoint.class).getResultList();
         if (CollUtil.isNotEmpty(resultList)) {
@@ -116,7 +116,7 @@ public class FileManagerService {
     }
 
     private TtyConnector getTyConnector(String channelId, boolean mustBeConnected) {
-        TtyConnector tyConnector = ttyConnectorPool.getConnector(channelId);
+        TtyConnector tyConnector = ttyConnectorManager.getConnector(channelId).orElseThrow();
         if (mustBeConnected) {
             Assert.isTrue(tyConnector.isConnected(), "当前通道已关闭");
         }
@@ -404,8 +404,6 @@ public class FileManagerService {
             });
             pauseList.addAll(ids);
         }
-
-
     }
 
     public void pauseTransfer(String channelId, String transferRecordId) {

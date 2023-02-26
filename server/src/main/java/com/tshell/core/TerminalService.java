@@ -1,26 +1,20 @@
 package com.tshell.core;
 
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.JSch;
 import com.tshell.core.client.TtyType;
-import com.tshell.core.tty.TtyConnectorPool;
+import com.tshell.core.tty.TtyConnectorManager;
 import com.tshell.core.tty.TtyConnector;
 import com.tshell.module.dto.terminal.LocalInitConnectDTO;
 import com.tshell.module.dto.terminal.SshInitConnectDTO;
 import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
-import com.tshell.module.enums.AuthType;
 import com.tshell.service.ConnectionLogService;
 import com.tshell.socket.WebSocket;
-import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.WebApplicationException;
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,10 +32,13 @@ public class TerminalService {
     final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     @Inject
-    TtyConnectorPool ttyConnectorPool;
+    TtyConnectorManager ttyConnectorManager;
 
     @Inject
     FileManagerService fileManagerService;
+
+    @Inject
+    ConnectionLogService connectionLogService;
 
 
     private Parameter.SshParameter convertToSshParameter(SshInitConnectDTO sshInitConnectDTO) {
@@ -55,7 +52,7 @@ public class TerminalService {
         sshParameter.setIp(sshSession.getIp());
         sshParameter.setPort(sshSession.getPort());
         // 验证方式
-        switch (sshSession.getAuthType()){
+        switch (sshSession.getAuthType()) {
             case PUBLIC_KEY -> {
                 sshParameter.setUsername(sshSession.getUsername());
                 sshParameter.setPrivateKeyFile(sshSession.getPrivateKeyFile());
@@ -88,9 +85,6 @@ public class TerminalService {
 
     /**
      * 初始化 ssh 连接
-     *
-     * @throws IOException
-     * @throws JSchException
      */
     public void initSshConnection(SshInitConnectDTO sshInitConnectDTO) {
         Parameter.SshParameter sshParameter = this.convertToSshParameter(sshInitConnectDTO);
@@ -109,11 +103,9 @@ public class TerminalService {
 
     }
 
-    @Inject
-    ConnectionLogService connectionLogService;
 
     private void initConnection(Parameter parameter) {
-        TtyConnector ttyConnector = ttyConnectorPool.getConnector(parameter);
+        TtyConnector ttyConnector = ttyConnectorManager.getConnector(parameter.getChannelId()).orElse(ttyConnectorManager.create(parameter));
         connectionLogService.start(parameter.sessionId);
         String channelId = parameter.getChannelId();
         receiveMsg((result) -> {
@@ -142,8 +134,14 @@ public class TerminalService {
         });
     }
 
-    public void executeCmd(String key, String cmd) throws Exception {
-        ttyConnectorPool.getConnector(key).write(cmd);
+    public void executeCmd(String key, String cmd) {
+        ttyConnectorManager.getConnector(key).ifPresent((ttyConnector -> {
+            try {
+                ttyConnector.write(cmd);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }));
     }
 
 
@@ -153,12 +151,13 @@ public class TerminalService {
 
 
     public void close(String channelId) {
-        TtyConnector connector = ttyConnectorPool.getConnector(channelId);
-        int sessionCount = ttyConnectorPool.getSessionCount(connector.getSessionId());
-        if (sessionCount == 1) {
-            fileManagerService.pauseTransfer(channelId);
-        }
-        connector.close();
+        ttyConnectorManager.getConnector(channelId).ifPresent(ttyConnector -> {
+            int sessionCount = ttyConnectorManager.getSessionCount(ttyConnector.getSessionId());
+            if (sessionCount == 1) {
+                fileManagerService.pauseTransfer(channelId);
+            }
+            ttyConnectorManager.close(channelId);
+        });
     }
 
     public boolean isInCommandInput(String channelId) {
@@ -171,32 +170,12 @@ public class TerminalService {
 
 
     private TtyConnector getTyConnector(String channelId) {
-        return Optional.ofNullable(ttyConnectorPool.getConnector(channelId)).orElseThrow();
+        return ttyConnectorManager.getConnector(channelId).orElseThrow();
     }
 
     public int getSessionCount(String channelId) {
         String sessionId = getTyConnector(channelId).getSessionId();
-        return ttyConnectorPool.getSessionCount(sessionId);
+        return ttyConnectorManager.getSessionCount(sessionId);
     }
 
-
-    public static void main(String[] args) throws JSchException {
-        JSch jsch = new JSch();
-        String username = "root";
-        String host = "47.98.56.121";
-        String privateKey = "C:\\Users\\10431\\Desktop\\id_rsa";
-        jsch.addIdentity(privateKey,"123456");
-
-        com.jcraft.jsch.Session session = jsch.getSession(username, host, 22);
-        session.setConfig("StrictHostKeyChecking", "no");
-        session.connect();
-
-        Channel channel = session.openChannel("shell");
-        channel.connect();
-
-        // do your work here
-
-        channel.disconnect();
-        session.disconnect();
-    }
 }

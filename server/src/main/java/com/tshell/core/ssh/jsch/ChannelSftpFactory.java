@@ -1,5 +1,6 @@
 package com.tshell.core.ssh.jsch;
 
+import com.tshell.core.Parameter;
 import com.tshell.core.ssh.SshConfig;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSchException;
@@ -17,29 +18,29 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
  * @author TheBlind
  */
 @Slf4j
-public class ChannelSftpFactory implements KeyedPooledObjectFactory<SshConfig, ChannelSftp> {
+public class ChannelSftpFactory implements KeyedPooledObjectFactory<Parameter.SshParameter, ChannelSftp> {
 
 
     @Override
-    public void destroyObject(SshConfig key, PooledObject<ChannelSftp> p, DestroyMode destroyMode) throws Exception {
+    public void destroyObject(Parameter.SshParameter key, PooledObject<ChannelSftp> p, DestroyMode destroyMode) throws Exception {
         KeyedPooledObjectFactory.super.destroyObject(key, p, destroyMode);
     }
 
     @Override
-    public void activateObject(SshConfig sshParameter, PooledObject<ChannelSftp> pooledObject)  {
+    public void activateObject(Parameter.SshParameter sshParameter, PooledObject<ChannelSftp> pooledObject)  {
 
     }
 
     @Override
-    public void destroyObject(SshConfig sshParameter, PooledObject<ChannelSftp> pooledObject)  {
+    public void destroyObject(Parameter.SshParameter sshParameter, PooledObject<ChannelSftp> pooledObject)  {
         log.error("销毁对象{}",sshParameter);
         final ChannelSftp channelSftp = pooledObject.getObject();
         channelSftp.disconnect();
     }
 
     @Override
-    public PooledObject<ChannelSftp> makeObject(SshConfig parameter)  {
-        Session session = JschUtil.openSession(parameter.ip(), parameter.port(), parameter.username(), parameter.pwd(), 3000);
+    public PooledObject<ChannelSftp> makeObject(Parameter.SshParameter parameter)  {
+        Session session = createSession(parameter);
         try {
             log.error("创建对象{}",parameter);
             ChannelSftp channel = (ChannelSftp) session.openChannel("sftp");
@@ -54,11 +55,11 @@ public class ChannelSftpFactory implements KeyedPooledObjectFactory<SshConfig, C
 
 
     @Override
-    public void passivateObject(SshConfig sshParameter, PooledObject<ChannelSftp> pooledObject) {
+    public void passivateObject(Parameter.SshParameter sshParameter, PooledObject<ChannelSftp> pooledObject) {
     }
 
     @Override
-    public boolean validateObject(SshConfig sshParameter, PooledObject<ChannelSftp> pooledObject) {
+    public boolean validateObject(Parameter.SshParameter sshParameter, PooledObject<ChannelSftp> pooledObject) {
         log.error("验证对象{}",sshParameter);
         final ChannelSftp channelSftp = pooledObject.getObject();
         try {
@@ -70,5 +71,13 @@ public class ChannelSftpFactory implements KeyedPooledObjectFactory<SshConfig, C
             return false;
         }
         return true;
+    }
+
+    private Session createSession(Parameter.SshParameter parameter) {
+        Session session=switch (parameter.getAuthType()){
+            case PWD,KEYBOARD_INTERACTIVE-> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(),3000);
+            case PUBLIC_KEY -> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(),parameter.getPassphrase(), 3000);
+        };
+        return session;
     }
 }

@@ -9,6 +9,7 @@ import java.util.HashMap;
  * @author TheBlind
  * @date 2022/4/12
  */
+@Deprecated
 public enum JschSessionPoll {
     INSTANCE;
 

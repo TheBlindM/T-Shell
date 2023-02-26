@@ -10,7 +10,6 @@ import com.tshell.core.client.TtyType;
 import com.tshell.core.ssh.SshConfig;
 import com.tshell.core.ssh.jsch.ChannelSftpPool;
 import com.tshell.core.ssh.jsch.ChannelSftpPoolFactory;
-import com.tshell.core.ssh.jsch.JschSessionPoll;
 import com.tshell.core.ssh.jsch.JschUtil;
 import com.tshell.core.tty.TtyConnector;
 import com.jcraft.jsch.*;
@@ -20,7 +19,6 @@ import java.io.*;
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.NoSuchFileException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -42,15 +40,17 @@ public final class JschPtyConnector implements TtyConnector {
     ClientHandler clientHandler;
     StringBuilder originalLineText = new StringBuilder();
 
+
+
     private final FileManager fileManager;
 
 
     private AtomicBoolean inCommandInput = new AtomicBoolean(false);
 
-    private final SshConfig sshConfig;
+    private final Parameter.SshParameter sshParameter;
 
     public JschPtyConnector(Parameter.SshParameter parameter) throws IOException {
-        Session session = getSession(parameter);
+        Session session = createSession(parameter);
         ChannelShell channel = null;
         try {
             channel = (ChannelShell) JschUtil.createShell(session);
@@ -82,7 +82,7 @@ public final class JschPtyConnector implements TtyConnector {
         this.sessionId = parameter.getSessionId();
 
         this.fileManager = new MyFileManager();
-        this.sshConfig = new SshConfig(parameter.ip, parameter.port, parameter.username, parameter.pwd);
+        this.sshParameter = parameter;
     }
 
     private static void handleConnectException(String message) throws SocketException {
@@ -93,15 +93,10 @@ public final class JschPtyConnector implements TtyConnector {
         }
     }
 
-    private Session getSession(Parameter.SshParameter parameter) {
-        return getSession(parameter, false);
-    }
-
-    private Session getSession(Parameter.SshParameter parameter, boolean create) {
+    private Session createSession(Parameter.SshParameter parameter) {
         Session session=switch (parameter.authType){
-           case PWD,KEYBOARD_INTERACTIVE-> JschSessionPoll.INSTANCE.getSession(parameter.getSessionId(), parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(), 3000, create);
-           case PUBLIC_KEY ->  JschSessionPoll.INSTANCE.getSession(parameter.getSessionId(), parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(),parameter.getPassphrase(), 3000, create);
-
+           case PWD,KEYBOARD_INTERACTIVE-> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(),3000);
+           case PUBLIC_KEY -> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(),parameter.getPassphrase(), 3000);
         };
        return session;
     }
@@ -174,7 +169,7 @@ public final class JschPtyConnector implements TtyConnector {
 
         private ChannelSftp getSftpChannel() {
             try {
-                return CHANNEL_SFTP_POOL.borrowObject(sshConfig);
+                return CHANNEL_SFTP_POOL.borrowObject(sshParameter);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -194,7 +189,11 @@ public final class JschPtyConnector implements TtyConnector {
             String completePath = dir.endsWith(separator) ? dir : dir + newName;
 
             clientHandler.createFile((cmd) -> {
-                return cn.hutool.extra.ssh.JschUtil.exec(JschSessionPoll.INSTANCE.getSession(sessionId), cmd, StandardCharsets.UTF_8);
+                try {
+                    return cn.hutool.extra.ssh.JschUtil.exec(shellChannel.getSession(), cmd, StandardCharsets.UTF_8);
+                } catch (JSchException e) {
+                    throw new RuntimeException(e);
+                }
             }, completePath, type);
         }
 
@@ -206,7 +205,7 @@ public final class JschPtyConnector implements TtyConnector {
             } catch (SftpException | IOException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
+                CHANNEL_SFTP_POOL.returnObject(sshParameter, sftpChannel);
             }
         }
 
@@ -226,7 +225,7 @@ public final class JschPtyConnector implements TtyConnector {
             } catch (SftpException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
+                CHANNEL_SFTP_POOL.returnObject(sshParameter, sftpChannel);
             }
             long interval = timer.interval();
             log.debug("耗时" + interval);
@@ -240,7 +239,7 @@ public final class JschPtyConnector implements TtyConnector {
             } catch (SftpException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
+                CHANNEL_SFTP_POOL.returnObject(sshParameter, sftpChannel);
             }
         }
 
@@ -252,7 +251,7 @@ public final class JschPtyConnector implements TtyConnector {
             } catch (SftpException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
+                CHANNEL_SFTP_POOL.returnObject(sshParameter, sftpChannel);
             }
         }
 
@@ -286,7 +285,7 @@ public final class JschPtyConnector implements TtyConnector {
             } catch (SftpException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
+                CHANNEL_SFTP_POOL.returnObject(sshParameter, sftpChannel);
             }
         }
 
@@ -303,7 +302,7 @@ public final class JschPtyConnector implements TtyConnector {
             } catch (SftpException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
+                CHANNEL_SFTP_POOL.returnObject(sshParameter, sftpChannel);
             }
         }
 
@@ -316,7 +315,7 @@ public final class JschPtyConnector implements TtyConnector {
             } catch (SftpException e) {
                 throw new RuntimeException(e);
             } finally {
-                CHANNEL_SFTP_POOL.returnObject(sshConfig, sftpChannel);
+                CHANNEL_SFTP_POOL.returnObject(sshParameter, sftpChannel);
             }
         }
 
