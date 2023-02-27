@@ -11,6 +11,7 @@
                 :preview-only="true"
                 :scroll-auto="false"
                 preview-theme="cyanosis"
+                :theme="theme.darkMode ? 'dark' : 'light'"
               />
             </div>
           </div>
@@ -29,7 +30,7 @@
           minRows: 3,
           maxRows: 5
         }"
-				:disabled="!inputActive"
+        :disabled="!inputActive"
         @keydown.enter="onEnter"
       ></n-input>
     </div>
@@ -39,34 +40,55 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
 import MdEditor from 'md-editor-v3';
-import { useAppStore } from '@/store';
+import { useAppStore, useThemeStore } from '@/store';
 import { getAiChat } from '@/theblind_shell/service/shell/aiChat';
 
 import 'md-editor-v3/lib/style.css';
 
 defineOptions({ name: 'Chat' });
-
+const theme = useThemeStore();
 const scrollContainer = ref(null);
 const question = ref(null);
 const app = useAppStore();
-const chatList = ref([
-  {
-    message: '你好，我是小T。有问题欢迎问我',
-    type: 'ai'
+
+
+function isLoveAnniversary() {
+	const curDate = new Date(); // 当前日期
+	return curDate.getMonth() + 1 == 2 && curDate.getDate() === 28;
+}
+const getDefaultChatList = () => {
+	console.log(isLoveAnniversary())
+  if (isLoveAnniversary()) {
+    return [
+      {
+        message: '你好，我是小T。有问题欢迎问我。对了，今天是王先生和董女生的恋爱纪念日噢🤣🎉🎉💖💕🎂！！',
+        type: 'ai'
+      }
+    ];
   }
-]);
+	return [
+		{
+			message: '你好，我是小T。有问题欢迎问我。',
+			type: 'ai'
+		}
+	];
+};
+
+
+
+const chatList = ref(getDefaultChatList());
 
 const inputActive = ref(true);
 
 const toScrollBottom = () => {
-	nextTick(() => {
-		// 监听滚动容器的变化
-		const newVal = scrollContainer.value;
-		if (newVal) {
-			newVal.scrollTop = newVal.scrollHeight;
-		}
-	});
-}
+  nextTick(() => {
+    // 监听滚动容器的变化
+    const newVal = scrollContainer.value;
+    if (newVal) {
+      newVal.scrollTop = newVal.scrollHeight;
+    }
+  });
+};
 const onEnter = e => {
   if (question.value.trim() == '') {
     return;
@@ -88,11 +110,11 @@ const onEnter = e => {
   getAiChat(questionVal).then(resultData => {
     if (resultData.data != null) {
       chatList.value[chatList.value.length - 1].message = resultData.data;
-			toScrollBottom();
+      toScrollBottom();
     }
     inputActive.value = true;
   });
-	toScrollBottom();
+  toScrollBottom();
 };
 </script>
 
@@ -101,13 +123,9 @@ const onEnter = e => {
   height: 100% !important;
 }
 .chatAppBody {
-  display: flex;
-  flex-direction: column;
-  height: 86.8vh;
-  background-color: #f1f5f8;
-}
-.chatTitle {
-  background: #fff;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 86.8vh !important;
 }
 .chatBox {
   height: 100%;
@@ -115,9 +133,7 @@ const onEnter = e => {
   padding: 0 5px;
   overflow-y: scroll;
 }
-.chatBottom {
-  background: #fff;
-}
+
 .chatRow {
   display: flex;
   align-items: flex-end;
@@ -136,7 +152,6 @@ const onEnter = e => {
 .chatContent {
   border-radius: 10px 10px 10px 0px;
   padding: 10px;
-  background-color: rgb(255, 255, 255);
   box-shadow: 0 5px 30px rgb(50 50 93 / 8%), 0 1px 3px rgb(0 0 0 / 5%);
   font-size: 14px;
   word-break: break-all;
@@ -147,5 +162,9 @@ const onEnter = e => {
 }
 .chatRowMe .chatContent {
   border-radius: 10px 10px 0px 10px;
+}
+
+.md-editor-dark {
+  --md-bk-color: #333 !important;
 }
 </style>
