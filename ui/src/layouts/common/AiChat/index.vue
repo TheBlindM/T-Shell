@@ -1,5 +1,5 @@
 <template>
-  <n-drawer :show="app.aiChatDrawerVisible" display-directive="show" :width="430"  @mask-click="app.closeAiChatDrawer">
+  <n-drawer :show="app.aiChatDrawerVisible" display-directive="show" :width="730"  @mask-click="app.closeAiChatDrawer">
     <n-drawer-content title="小T机器人" :native-scrollbar="false" style="height: 100%">
      <chat />
     </n-drawer-content>

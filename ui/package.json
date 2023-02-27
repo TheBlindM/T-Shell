@@ -1,6 +1,6 @@
 {
   "name": "T-Shell",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "author": {
     "name": "TheBlind",
     "email": "1043193478@qq.com",
@@ -23,7 +23,7 @@
     "appBuildDev": "tauri build  --debug",
     "appBuild": "tauri build ",
     "appInfo": "tauri info  ",
-		"tauri signer":"tauri signer generate -w ~/.tauri/myapp.key"
+    "tauri signer": "tauri signer generate -w ~/.tauri/myapp.key"
   },
   "lint-staged": {
     "*.{vue,js,jsx,ts,tsx,json}": "eslint --fix"
@@ -47,7 +47,8 @@
     "dayjs": "^1.11.4",
     "form-data": "^4.0.0",
     "lodash-es": "^4.17.21",
-    "naive-ui": "^2.34.2",
+    "md-editor-v3": "^2.8.1",
+    "naive-ui": "^2.34.3",
     "nanoid": "^4.0.0",
     "pinia": "^2.0.17",
     "print-js": "^1.6.0",
