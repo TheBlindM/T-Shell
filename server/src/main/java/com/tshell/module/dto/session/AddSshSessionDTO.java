@@ -1,6 +1,6 @@
 package com.tshell.module.dto.session;
 
-import com.tshell.core.Parameter;
+
 import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
 import com.tshell.module.enums.AuthType;
@@ -12,14 +12,14 @@ import javax.validation.constraints.NotNull;
 
 public record AddSshSessionDTO(
         @NotBlank(message = "主机名称不能为空")
-        String hostName,
+        String sessionName,
         @NotBlank(message = "ip不能为空")
         String ip,
         @NotNull(message = "端口不能为空")
         @Min(value = 0, message = "端口不允许为负数")
         @Max(value = 65535, message = "端口不能大于65535")
         Integer port,
-        @NotBlank(message = "主机名称不能为空")
+
         String username,
         String pwd,
         String privateKeyFile,
@@ -32,7 +32,7 @@ public record AddSshSessionDTO(
         Integer sessionGroupId
 ) {
     public Session convertSession() {
-        return Session.builder().sessionName(hostName).ttyTypeId(ttyTypeId).sessionGroupId(sessionGroupId).build();
+        return Session.builder().sessionName(sessionName).ttyTypeId(ttyTypeId).sessionGroupId(sessionGroupId).build();
     }
 
     public SshSession convertSshSession() {
