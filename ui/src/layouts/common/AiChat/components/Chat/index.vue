@@ -53,11 +53,11 @@ const app = useAppStore();
 
 
 function isLoveAnniversary() {
-	const curDate = new Date(); // 当前日期
-	return curDate.getMonth() + 1 == 2 && curDate.getDate() === 28;
+  const curDate = new Date(); // 当前日期
+  return curDate.getMonth() + 1 == 2 && curDate.getDate() === 28;
 }
 const getDefaultChatList = () => {
-	console.log(isLoveAnniversary())
+  console.log(isLoveAnniversary());
   if (isLoveAnniversary()) {
     return [
       {
@@ -66,15 +66,13 @@ const getDefaultChatList = () => {
       }
     ];
   }
-	return [
-		{
-			message: '你好，我是小T。有问题欢迎问我。',
-			type: 'ai'
-		}
-	];
+  return [
+    {
+      message: '你好，我是小T。有问题欢迎问我。',
+      type: 'ai'
+    }
+  ];
 };
-
-
 
 const chatList = ref(getDefaultChatList());
 
@@ -89,8 +87,8 @@ const toScrollBottom = () => {
     }
   });
 };
-const onEnter = e => {
-  if (question.value.trim() == '') {
+const onEnter = async e => {
+  if (question.value.trim() == '' || !inputActive.value) {
     return;
   }
 
@@ -107,14 +105,21 @@ const onEnter = e => {
     message: '小T正在思考中...',
     type: 'ai'
   });
-  getAiChat(questionVal).then(resultData => {
+	toScrollBottom();
+  try {
+    const resultData = await getAiChat(questionVal);
     if (resultData.data != null) {
       chatList.value[chatList.value.length - 1].message = resultData.data;
-      toScrollBottom();
+    } else {
+      chatList.value[chatList.value.length - 1].message = `异常${resultData.error}`;
     }
+  } catch (e) {
+    chatList.value[chatList.value.length - 1].message = `异常${e.message}`;
+  } finally {
+    toScrollBottom();
     inputActive.value = true;
-  });
-  toScrollBottom();
+
+  }
 };
 </script>
 
@@ -139,10 +144,6 @@ const onEnter = e => {
   align-items: flex-end;
   margin: 5px 0px;
 }
-.chatAvatar {
-  margin-right: 5px;
-  flex-shrink: 0;
-}
 .chatUsername {
   font-size: 12px;
   white-space: nowrap;
@@ -154,14 +155,17 @@ const onEnter = e => {
   padding: 10px;
   box-shadow: 0 5px 30px rgb(50 50 93 / 8%), 0 1px 3px rgb(0 0 0 / 5%);
   font-size: 14px;
+  letter-spacing: 1.3px;
   word-break: break-all;
   line-height: 41px;
 }
 .chatRowMe {
   justify-content: flex-end;
 }
+
 .chatRowMe .chatContent {
   border-radius: 10px 10px 0px 10px;
+  background-color: rgb(101, 196, 104);
 }
 
 .md-editor-dark {
