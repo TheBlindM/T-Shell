@@ -214,6 +214,7 @@ public class ShortcutCmdService {
                     AND sc.name != :name
                    AND sc.name LIKE :likeName 
                    group by sc.id
+                   order by instr(sc.name,:name), length(sc.name)
                    limit 3  
                    """;
 
