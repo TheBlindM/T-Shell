@@ -20,7 +20,13 @@
 				"scope": [
 					{ "name": "server", "sidecar": true }
 				]
+			},
+			"clipboard": {
+				"all": true,
+				"writeText": true,
+				"readText": true
 			}
+
 		},
     "bundle": {
       "active": true,

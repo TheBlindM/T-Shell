@@ -124,6 +124,7 @@ import { useNotification } from 'naive-ui';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import { Icon } from '@iconify/vue';
+import { readText, writeText } from '@tauri-apps/api/clipboard';
 import { useTabStore, useAppStore } from '@/store';
 import 'xterm/css/xterm.css';
 import { MessageType, Msg, shellWebSocket } from '@/utils/shell/msgWebSocket';
@@ -192,10 +193,10 @@ const handleRightClickMenuSelect = key => {
   showRightClickMenuRef.value = false;
   switch (key) {
     case 'copy':
-      navigator.clipboard.writeText(term.getSelection());
+      writeText(term.getSelection());
       break;
     case 'paste':
-      navigator.clipboard.readText().then(clipText => {
+      readText().then(clipText => {
         webSocket?.sendJsonMessage(new Msg(channelId, clipText, MessageType.CMD));
         terminalFocus();
       });
@@ -629,11 +630,17 @@ onMounted(() => {
   );
 
   term.attachCustomKeyEventHandler(e => {
-    const { keyCode, ctrlKey } = e;
+    const { keyCode, ctrlKey,shiftKey } = e;
     // 38,40 上下
     const moveKey = [38, 40];
     const menuKeyCodes = [38, 40, 13, 27];
     const cKeyCode = 67;
+
+		// ctrl+shift+c 事件
+		if (shiftKey && ctrlKey && keyCode === cKeyCode) {
+			writeText(term.getSelection());
+			return false;
+		}
 
     // ctrl+c 事件
     if (ctrlKey && keyCode === cKeyCode) {
