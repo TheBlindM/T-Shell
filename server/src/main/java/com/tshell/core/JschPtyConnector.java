@@ -4,15 +4,14 @@ import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
+import com.jcraft.jsch.*;
 import com.tshell.core.client.ClientFactory;
 import com.tshell.core.client.ClientHandler;
 import com.tshell.core.client.TtyType;
-import com.tshell.core.ssh.SshConfig;
 import com.tshell.core.ssh.jsch.ChannelSftpPool;
 import com.tshell.core.ssh.jsch.ChannelSftpPoolFactory;
 import com.tshell.core.ssh.jsch.JschUtil;
 import com.tshell.core.tty.TtyConnector;
-import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -41,7 +40,6 @@ public final class JschPtyConnector implements TtyConnector {
     StringBuilder originalLineText = new StringBuilder();
 
 
-
     private final FileManager fileManager;
 
 
@@ -50,10 +48,11 @@ public final class JschPtyConnector implements TtyConnector {
     private final Parameter.SshParameter sshParameter;
 
     public JschPtyConnector(Parameter.SshParameter parameter) throws IOException {
-        Session session = createSession(parameter);
+        Session session = null;
         ChannelShell channel = null;
         try {
-            channel = (ChannelShell) JschUtil.createShell(session);
+            session = createSession(parameter);
+            channel = JschUtil.createShell(session);
         } catch (JSchException e) {
             handleConnectException(e.getMessage());
             throw new RuntimeException(e);
@@ -88,17 +87,19 @@ public final class JschPtyConnector implements TtyConnector {
     private static void handleConnectException(String message) throws SocketException {
         if (message.endsWith("Network is unreachable: connect")) {
             throw new SocketException("网络连接失败");
-        } else if (message.endsWith("Connection refused: connect") || message.endsWith("Packet corrupt")) {
+        } else if (message.endsWith("Connection refused: connect") || message.endsWith("Packet corrupt")||message.endsWith("Auth fail")) {
             throw new ConnectException("连接被拒绝,请检查信息是否正确");
         }
     }
 
     private Session createSession(Parameter.SshParameter parameter) {
-        Session session=switch (parameter.authType){
-           case PWD,KEYBOARD_INTERACTIVE-> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(),3000);
-           case PUBLIC_KEY -> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(),parameter.getPassphrase(), 3000);
+        Session session = switch (parameter.authType) {
+            case PWD, KEYBOARD_INTERACTIVE ->
+                    JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(), 30000);
+            case PUBLIC_KEY ->
+                    JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(), parameter.getPassphrase(), 30000);
         };
-       return session;
+        return session;
     }
 
 
@@ -183,7 +184,7 @@ public final class JschPtyConnector implements TtyConnector {
                 dir = separator;
             }
             String newName = name;
-            if(!newName.startsWith(separator)){
+            if (!newName.startsWith(separator)) {
                 newName = separator + name;
             }
             String completePath = dir.endsWith(separator) ? dir : dir + newName;

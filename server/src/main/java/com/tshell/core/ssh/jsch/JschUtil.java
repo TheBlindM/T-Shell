@@ -1,14 +1,16 @@
 package com.tshell.core.ssh.jsch;
 
 
-
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.net.LocalPortGenerater;
 import cn.hutool.extra.ssh.JschRuntimeException;
+import com.jcraft.jsch.*;
 import com.tshell.utils.StrUtil;
 import com.tshell.utils.io.IoUtil;
-import com.jcraft.jsch.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
@@ -24,32 +26,53 @@ import java.util.function.Function;
 
 public class JschUtil {
 
+    /**
+     * 本地端口生成器
+     */
+    private static final LocalPortGenerater portGenerater = new LocalPortGenerater(10000);
+
+    /**
+     * 生成一个本地端口，用于远程端口映射
+     *
+     * @return 未被使用的本地端口
+     */
+    public static int generateLocalPort() {
+        return portGenerater.generate();
+    }
+
     public static Session openSession(String host, int port, String user, String pwd, int timeout) {
         final Session session = createSession(host, port, user, pwd);
         try {
             session.connect(timeout);
         } catch (JSchException e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
         }
         return session;
     }
 
     public static Session openSession(String host, int port, String user, String privateKeyPath, String passphrase, int timeout) {
-        final Session session = createSession(host, port, user, privateKeyPath,passphrase);
+        final Session session;
         try {
+            session = createSession(host, port, user, privateKeyPath, passphrase);
             session.connect(timeout);
         } catch (JSchException e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
         }
         return session;
     }
 
 
-
     public static Session createSession(String host, int port, String user, String pass) {
         final JSch jsch = new JSch();
-        final Session session = createSession(jsch, host, port, user);
-        session.setPassword(pass);
+        final Session session;
+        try {
+            session = createSession(jsch, host, port, user);
+            if (!StrUtil.isEmpty(pass)) {
+                session.setPassword(pass);
+            }
+        } catch (JSchException e) {
+            throw new RuntimeException(e);
+        }
         return session;
     }
 
@@ -64,28 +87,91 @@ public class JschUtil {
      * @return SSH会话
      * @since 5.0.0
      */
-    public static Session createSession(String host, int port, String user, String privateKeyPath, String passphrase)  {
+    public static Session createSession(String host, int port, String user, String privateKeyPath, String passphrase) throws JSchException {
         final JSch jsch = new JSch();
-        try {
-            jsch.addIdentity(privateKeyPath, passphrase);
-        } catch (JSchException e) {
-            throw new RuntimeException(e);
-        }
+        jsch.addIdentity(privateKeyPath, passphrase);
         return createSession(jsch, host, port, user);
     }
 
 
+    public static Session createSession(JSch jsch, String host, int port, String user) throws JSchException {
+        Assert.notEmpty(host, "SSH Host must be not empty!");
+        Assert.isTrue(port > 0, "SSH port must be > 0");
 
-    public static Session createSession(JSch jSch, String host, int port, String user) {
-        Session session = null;
-        try {
-            session = jSch.getSession(user, host, port);
-        } catch (JSchException e) {
-            e.printStackTrace();
+        // 默认root用户
+        if (cn.hutool.core.util.StrUtil.isEmpty(user)) {
+            user = "root";
         }
+
+        if (null == jsch) {
+            jsch = new JSch();
+        }
+
+        Session session;
+        session = jsch.getSession(user, host, port);
         // 设置第一次登录的时候提示，可选值：(ask | yes | no)
         session.setConfig("StrictHostKeyChecking", "no");
         return session;
+    }
+
+
+    /**
+     * 绑定端口到本地。 一个会话可绑定多个端口
+     *
+     * @param session    需要绑定端口的SSH会话
+     * @param remoteHost 远程主机
+     * @param remotePort 远程端口
+     * @param localPort  本地端口
+     * @return 成功与否
+     * @throws JschRuntimeException 端口绑定失败异常
+     */
+    public static boolean bindPort(Session session, String remoteHost, int remotePort, int localPort){
+        return bindPort(session, remoteHost, remotePort, "127.0.0.1", localPort);
+    }
+
+    /**
+     * 绑定端口到本地。 一个会话可绑定多个端口
+     *
+     * @param session    需要绑定端口的SSH会话
+     * @param remoteHost 远程主机
+     * @param remotePort 远程端口
+     * @param localHost  本地主机
+     * @param localPort  本地端口
+     * @return 成功与否
+     */
+    public static boolean bindPort(Session session, String remoteHost, int remotePort, String localHost, int localPort) {
+        if (session != null && session.isConnected()) {
+            try {
+                session.setPortForwardingL(localHost, localPort, remoteHost, remotePort);
+            } catch (JSchException e) {
+                throw new JschRuntimeException(e, "From [{}:{}] mapping to [{}:{}] error！", remoteHost, remotePort, localHost, localPort);
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 绑定ssh服务端的serverPort端口, 到host主机的port端口上. <br>
+     * 即数据从ssh服务端的serverPort端口, 流经ssh客户端, 达到host:port上.
+     *
+     * @param session  与ssh服务端建立的会话
+     * @param bindPort ssh服务端上要被绑定的端口
+     * @param host     转发到的host
+     * @param port     host上的端口
+     * @return 成功与否
+     */
+    public static boolean bindRemotePort(Session session, int bindPort, String host, int port) throws JschRuntimeException {
+        if (session != null && session.isConnected()) {
+            try {
+                session.setPortForwardingR(bindPort, host, port);
+            } catch (JSchException e) {
+                throw new JschRuntimeException(e, "From [{}] mapping to [{}] error！", bindPort, port);
+            }
+            return true;
+        }
+        return false;
     }
 
 
@@ -128,15 +214,12 @@ public class JschUtil {
      */
     public static Channel createChannel(Session session, ChannelType channelType) throws JSchException {
         Channel channel;
-
-            if (false == session.isConnected()) {
-                session.connect();
-            }
-            channel = session.openChannel(channelType.getValue());
+        if (!session.isConnected()) {
+            session.connect();
+        }
+        channel = session.openChannel(channelType.getValue());
         return channel;
     }
-
-
 
 
     public static void executeCmd(Session session, String cmd, OutputStream resultOutput, OutputStream errOutput) throws Exception {
@@ -157,14 +240,14 @@ public class JschUtil {
 
     }
 
-    public static void executeCmd(Session session, String cmd, Charset charset, Consumer<InputStream> consumer,Consumer<InputStream> errConsumer) throws IOException, JSchException {
+    public static void executeCmd(Session session, String cmd, Charset charset, Consumer<InputStream> consumer, Consumer<InputStream> errConsumer) throws IOException, JSchException {
         if (null == charset) {
             charset = StandardCharsets.UTF_8;
         }
 
         ChannelExec channel = (ChannelExec) createChannel(session, ChannelType.EXEC);
         channel.setCommand(StrUtil.bytes(cmd, charset));
-        channel.setInputStream((InputStream)null);
+        channel.setInputStream((InputStream) null);
         InputStream errStream = channel.getErrStream();
         InputStream in = null;
 
@@ -173,7 +256,7 @@ public class JschUtil {
             in = channel.getInputStream();
             consumer.accept(in);
             errConsumer.accept(errStream);
-        }  finally {
+        } finally {
             IoUtil.close(in);
             channel.disconnect();
         }
@@ -217,12 +300,12 @@ public class JschUtil {
     }
 
     public static <T> T sftpOperate(Session session, Function<ChannelSftp, T> function) {
-        return sftpOperate(session,function,true);
+        return sftpOperate(session, function, true);
     }
 
-    public static <T> T sftpOperate(Session session, Function<ChannelSftp, T> function,boolean autoClose) {
+    public static <T> T sftpOperate(Session session, Function<ChannelSftp, T> function, boolean autoClose) {
         ChannelSftp sftp = null;
-        try{
+        try {
             sftp = createSftp(session);
             sftp.connect();
             sftp.setFilenameEncoding(StandardCharsets.UTF_8.toString());
@@ -230,7 +313,7 @@ public class JschUtil {
         } catch (JSchException | SftpException e) {
             throw new RuntimeException(e);
         } finally {
-            if (autoClose){
+            if (autoClose) {
                 closeChannel(sftp);
             }
         }
@@ -246,31 +329,4 @@ public class JschUtil {
         return (ChannelSftp) createChannel(session, ChannelType.SFTP);
     }
 
-    private static final class PumpThread extends Thread {
-        private final InputStream in;
-        private final OutputStream out;
-
-        public PumpThread(InputStream in, OutputStream out) {
-            super("pump thread");
-            this.in = in;
-            this.out = out;
-        }
-
-        @Override
-        public void run() {
-            byte[] buf = new byte[1024];
-            try {
-                while (true) {
-                    int len = in.read(buf);
-                    if (len < 0) {
-                        in.close();
-                        return;
-                    }
-                    out.write(buf, 0, len);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

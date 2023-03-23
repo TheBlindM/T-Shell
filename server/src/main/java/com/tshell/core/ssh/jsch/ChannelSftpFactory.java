@@ -75,8 +75,8 @@ public class ChannelSftpFactory implements KeyedPooledObjectFactory<Parameter.Ss
 
     private Session createSession(Parameter.SshParameter parameter) {
         Session session=switch (parameter.getAuthType()){
-            case PWD,KEYBOARD_INTERACTIVE-> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(),3000);
-            case PUBLIC_KEY -> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(),parameter.getPassphrase(), 3000);
+            case PWD,KEYBOARD_INTERACTIVE-> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(),30000);
+            case PUBLIC_KEY -> JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(),parameter.getPassphrase(), 30000);
         };
         return session;
     }
