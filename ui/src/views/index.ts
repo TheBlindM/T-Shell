@@ -16,7 +16,6 @@ const SYSTEM_VIEW = 'system-view_';
 const viewKeys = Object.keys(importViews).filter(key => !key.includes(COMPONENTS_KEY));
 
 function getViewComponent() {
-	debugger;
   const components: ViewComponent = {};
   viewKeys.forEach(key => {
     const routeKey = key

@@ -1,4 +1,3 @@
-import SettingDrawer from './SettingDrawer/index.vue';
 import GlobalHeader from './GlobalHeader/index.vue';
 import GlobalTab from './GlobalTab/index.vue';
 import GlobalSider from './GlobalSider/index.vue';
@@ -8,4 +7,4 @@ import GlobalLogo from './GlobalLogo/index.vue';
 import GlobalBackTop from './GlobalBackTop/index.vue';
 import AiChat from "./AiChat/index.vue"
 
-export { SettingDrawer, GlobalHeader, GlobalTab, GlobalSider, GlobalContent, GlobalFooter, GlobalLogo, GlobalBackTop,AiChat };
+export {GlobalHeader, GlobalTab, GlobalSider, GlobalContent, GlobalFooter, GlobalLogo, GlobalBackTop,AiChat };

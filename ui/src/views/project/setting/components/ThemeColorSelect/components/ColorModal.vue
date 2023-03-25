@@ -27,7 +27,6 @@ import { traditionColors } from '@/settings';
 import { useThemeStore } from '@/store';
 import ColorCheckbox from './ColorCheckbox.vue';
 
-defineOptions({ name: 'ColorModal' });
 
 interface Props {
   visible: boolean;

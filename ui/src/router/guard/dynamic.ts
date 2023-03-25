@@ -14,7 +14,6 @@ export async function createDynamicRouteGuard(
   next: NavigationGuardNext
 ) {
   const route = useRouteStore();
-  debugger;
   console.log(VITE_APP_MULTI_USER_MODE);
   if (VITE_APP_MULTI_USER_MODE === 'N') {
     // 初始化

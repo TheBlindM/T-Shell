@@ -1,12 +1,15 @@
 <template>
-  <dark-mode-container class="global-tab flex-y-center w-full pl-16px" :style="{ height: theme.tab.height + 'px' }">
-    <div ref="bsWrapper" class="flex-1-hidden h-full">
-      <better-scroll ref="bsScroll" :options="{ scrollX: true, scrollY: false}">
-        <tab-detail @scroll="handleScroll" />
+	<div>
+  <dark-mode-container  class="global-tab flex-y-center w-full pl-16px" :style="{ height: theme.tab.height + 'px' }">
+    <div ref="bsWrapper"  class="flex-1-hidden h-full">
+      <better-scroll data-tauri-drag-region  ref="bsScroll" :options="{ scrollX: true, scrollY: false}">
+        <tab-detail  @scroll="handleScroll" />
       </better-scroll>
     </div>
-    <reload-button />
+		<ProjectSettingButton/>
+		<WindowButton/>
   </dark-mode-container>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -14,7 +17,7 @@ import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useElementBounding } from '@vueuse/core';
 import { useThemeStore, useTabStore } from '@/store';
-import { TabDetail, ReloadButton } from './components';
+import { TabDetail,WindowButton,ProjectSettingButton } from './components';
 
 defineOptions({ name: 'GlobalTab' });
 

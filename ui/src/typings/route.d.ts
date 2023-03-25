@@ -63,6 +63,8 @@ declare namespace AuthRoute {
     | 'about'
     | 'shell'
     | 'shell_terminal'
+    | 'project'
+    | 'project_setting'
     | 'shell_info';
 
   /** 路由的path */

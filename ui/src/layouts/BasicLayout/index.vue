@@ -30,7 +30,6 @@
     </template>-->
   </admin-layout>
   <global-back-top />
-  <setting-drawer />
 	<ai-chat/>
 </template>
 
@@ -40,7 +39,6 @@ import { useAppStore, useThemeStore } from '@/store';
 import { useBasicLayout } from '@/composables';
 import { useBoolean } from '@/hooks';
 import {
-  SettingDrawer,
   GlobalHeader,
   GlobalTab,
   GlobalSider,
