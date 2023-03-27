@@ -1,6 +1,7 @@
 package com.tshell.module.vo;
 
 import com.tshell.module.enums.AuthType;
+import com.tshell.module.enums.ProxyType;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
@@ -15,6 +16,9 @@ public record SshSessionVO(
         int ttyTypeId,
         AuthType authType,
         String privateKeyFile,
-        String passphrase
+        String passphrase,
+        String proxyHost,
+        Integer proxyPort,
+        ProxyType proxyType
 ) {
 }

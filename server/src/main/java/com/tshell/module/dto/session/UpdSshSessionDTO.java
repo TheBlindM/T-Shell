@@ -1,9 +1,9 @@
 package com.tshell.module.dto.session;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
 import com.tshell.module.enums.AuthType;
+import com.tshell.module.enums.ProxyType;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -28,8 +28,10 @@ public record UpdSshSessionDTO(
         Integer ttyTypeId,
         @NotNull(message = "组不能为空")
         Integer sessionGroupId,
-
+        String proxyHost,
+        Integer proxyPort,
         AuthType authType,
+        ProxyType proxyType,
         String privateKeyFile,
         String passphrase
 ) {
@@ -39,6 +41,9 @@ public record UpdSshSessionDTO(
         source.setUsername(this.username);
         source.setPwd(this.pwd);
         source.setAuthType(this.authType);
+        source.setProxyHost(this.proxyHost);
+        source.setProxyPort(this.proxyPort);
+        source.setProxyType(this.proxyType);
         source.setPrivateKeyFile(this.privateKeyFile);
         source.setPassphrase(this.passphrase);
     }

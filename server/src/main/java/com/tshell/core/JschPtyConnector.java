@@ -12,6 +12,7 @@ import com.tshell.core.ssh.jsch.ChannelSftpPool;
 import com.tshell.core.ssh.jsch.ChannelSftpPoolFactory;
 import com.tshell.core.ssh.jsch.JschUtil;
 import com.tshell.core.tty.TtyConnector;
+import com.tshell.module.enums.ProxyType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -87,17 +88,23 @@ public final class JschPtyConnector implements TtyConnector {
     private static void handleConnectException(String message) throws SocketException {
         if (message.endsWith("Network is unreachable: connect")) {
             throw new SocketException("网络连接失败");
-        } else if (message.endsWith("Connection refused: connect") || message.endsWith("Packet corrupt")||message.endsWith("Auth fail")) {
+        } else if (message.endsWith("Connection refused: connect") || message.endsWith("Packet corrupt") || message.endsWith("Auth fail")) {
             throw new ConnectException("连接被拒绝,请检查信息是否正确");
         }
     }
 
     private Session createSession(Parameter.SshParameter parameter) {
+        Proxy proxy = switch (parameter.getProxyType()) {
+            case HTTP -> new ProxyHTTP(parameter.proxyHost, parameter.proxyPort);
+            case SOCKET -> new ProxySOCKS5(parameter.proxyHost, parameter.proxyPort);
+            case DIRECT -> null;
+        };
+
         Session session = switch (parameter.authType) {
             case PWD, KEYBOARD_INTERACTIVE ->
-                    JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(), 30000);
+                    JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPwd(), 30000, proxy);
             case PUBLIC_KEY ->
-                    JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(), parameter.getPassphrase(), 30000);
+                    JschUtil.openSession(parameter.getIp(), parameter.getPort(), parameter.getUsername(), parameter.getPrivateKeyFile(), parameter.getPassphrase(), 30000, proxy);
         };
         return session;
     }

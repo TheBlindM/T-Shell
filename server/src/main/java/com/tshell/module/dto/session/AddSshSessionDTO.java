@@ -4,6 +4,7 @@ package com.tshell.module.dto.session;
 import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
 import com.tshell.module.enums.AuthType;
+import com.tshell.module.enums.ProxyType;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -24,7 +25,10 @@ public record AddSshSessionDTO(
         String pwd,
         String privateKeyFile,
         String passphrase,
+        String proxyHost,
+        Integer proxyPort,
         AuthType authType,
+        ProxyType proxyType,
 
         @NotNull(message = "终端类型不能为空")
         Integer ttyTypeId,
@@ -36,6 +40,6 @@ public record AddSshSessionDTO(
     }
 
     public SshSession convertSshSession() {
-        return SshSession.builder().ip(ip).port(port).username(username).pwd(pwd).authType(authType).privateKeyFile(privateKeyFile).passphrase(passphrase).build();
+        return SshSession.builder().ip(ip).port(port).username(username).pwd(pwd).authType(authType).proxyType(proxyType).proxyHost(proxyHost).proxyPort(proxyPort).privateKeyFile(privateKeyFile).passphrase(passphrase).build();
     }
 }

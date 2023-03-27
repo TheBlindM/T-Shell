@@ -40,9 +40,12 @@ public class JschUtil {
         return portGenerater.generate();
     }
 
-    public static Session openSession(String host, int port, String user, String pwd, int timeout) {
+    public static Session openSession(String host, int port, String user, String pwd, int timeout, Proxy proxy) {
         final Session session = createSession(host, port, user, pwd);
         try {
+            if (proxy != null) {
+                session.setProxy(proxy);
+            }
             session.connect(timeout);
         } catch (JSchException e) {
             throw new RuntimeException(e);
@@ -50,10 +53,13 @@ public class JschUtil {
         return session;
     }
 
-    public static Session openSession(String host, int port, String user, String privateKeyPath, String passphrase, int timeout) {
+    public static Session openSession(String host, int port, String user, String privateKeyPath, String passphrase, int timeout, Proxy proxy) {
         final Session session;
         try {
             session = createSession(host, port, user, privateKeyPath, passphrase);
+            if (proxy != null) {
+                session.setProxy(proxy);
+            }
             session.connect(timeout);
         } catch (JSchException e) {
             throw new RuntimeException(e);
@@ -125,7 +131,7 @@ public class JschUtil {
      * @return 成功与否
      * @throws JschRuntimeException 端口绑定失败异常
      */
-    public static boolean bindPort(Session session, String remoteHost, int remotePort, int localPort){
+    public static boolean bindPort(Session session, String remoteHost, int remotePort, int localPort) {
         return bindPort(session, remoteHost, remotePort, "127.0.0.1", localPort);
     }
 

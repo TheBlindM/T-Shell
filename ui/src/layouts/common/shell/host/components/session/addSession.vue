@@ -13,7 +13,6 @@
 			<n-form-item label="认证方式" path="authType">
 				<n-select v-model:value="formValue.authType" :options="authTypeOptions" placeholder="选择认证方式"/>
 			</n-form-item>
-
 			<template v-if="formValue.authType=='PWD'">
 				<n-form-item label="用户名" path="username">
 					<n-input  v-model:value="formValue.username" placeholder="输入用户名"/>
@@ -22,7 +21,6 @@
 					<n-input v-model:value="formValue.pwd" type="password" show-password-on="mousedown" placeholder="密码"/>
 				</n-form-item>
 			</template>
-
 			<template  v-else-if="formValue.authType=='PUBLIC_KEY'">
 				<n-form-item label="用户名" path="username">
 					<n-input  v-model:value="formValue.username" placeholder="输入用户名"/>
@@ -36,6 +34,19 @@
 				</n-form-item>
 				<n-form-item label="passphrase">
 					<n-input v-model:value="formValue.passphrase" type="password" show-password-on="mousedown" placeholder="密码"/>
+				</n-form-item>
+			</template>
+
+			<n-form-item label="代理方式" path="authType">
+				<n-select v-model:value="formValue.proxyType" :options="proxyTypeOptions" placeholder="选择代理方式"/>
+			</n-form-item>
+
+			<template v-if="formValue.proxyType!='DIRECT'">
+				<n-form-item label="代理主机" path="username">
+					<n-input v-model:value="formValue.proxyHost" placeholder="输入代理主机"/>
+				</n-form-item>
+				<n-form-item label="代理端口" path="pwd">
+					<n-input v-model:value="formValue.proxyPort"  placeholder="代理端口"/>
 				</n-form-item>
 			</template>
 
@@ -128,6 +139,9 @@ const formValue = ref({
 	pwd: null,
 	ttyTypeId: 4,
 	authType: 'PWD',
+	proxyHost: null,
+	proxyPort: null,
+	proxyType: 'DIRECT',
 	passphrase:null,
 	privateKeyFile:null
 });
@@ -179,6 +193,22 @@ const authTypeOptions = [
 	{
 		label: "键盘交互",
 		value: 'KEYBOARD_INTERACTIVE'
+	}
+];
+
+
+const proxyTypeOptions = [
+	{
+		label: "直连",
+		value: 'DIRECT'
+	},
+	{
+		label: "Http",
+		value: 'HTTP'
+	},
+	{
+		label: "Socket",
+		value: 'SOCKET'
 	}
 ];
 </script>

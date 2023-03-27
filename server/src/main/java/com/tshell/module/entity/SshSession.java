@@ -1,7 +1,9 @@
 package com.tshell.module.entity;
 
 import com.tshell.config.AuthTypeConverter;
+import com.tshell.config.ProxyTypeConverter;
 import com.tshell.module.enums.AuthType;
+import com.tshell.module.enums.ProxyType;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,10 +32,16 @@ public class SshSession extends PanacheEntityBase {
     private Integer port;
     private String username;
     private String pwd;
+    private String privateKeyFile;
+    private String passphrase;
 
-    protected String privateKeyFile;
-    protected String passphrase;
+    private String proxyHost;
+    private Integer proxyPort;
+
     @Convert(converter = AuthTypeConverter.class)
     private AuthType authType;
+
+    @Convert(converter = ProxyTypeConverter.class)
+    private ProxyType proxyType;
 
 }

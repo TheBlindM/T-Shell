@@ -67,8 +67,15 @@ public class TerminalService {
                 sshParameter.setPwd(sshSession.getPwd());
             }
         }
+        switch (sshSession.getProxyType()) {
+            case HTTP, SOCKET -> {
+                sshParameter.setProxyHost(sshSession.getProxyHost());
+                sshParameter.setProxyPort(sshSession.getProxyPort());
+            }
+        }
 
         sshParameter.setAuthType(sshSession.getAuthType());
+        sshParameter.setProxyType(sshSession.getProxyType());
         sshParameter.setChannelId(sshInitConnectDTO.channelId());
         sshParameter.setTtySize(sshInitConnectDTO.ttySize());
         sshParameter.setTtyTypeId(session.getTtyTypeId());
