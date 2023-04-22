@@ -13,7 +13,7 @@
       "
     >
       <div style="display: inline-block; width: 18%">
-        <n-badge :value="transferTaskCount.downloadCount+transferTaskCount.uploadCount" style="top: -3px">
+        <n-badge :value="transferTaskCount.downloadCount + transferTaskCount.uploadCount" style="top: -3px">
           <n-button style="display: inline-block" @click="clickTransfer">
             <Icon icon="iconoir:data-transfer-both" />
           </n-button>
@@ -80,11 +80,9 @@
         to="#test"
       >
         <n-drawer-content>
-          <n-tabs type="segment" :on-update:value="startIntervalProgressTask">
-
-
-            <n-tab-pane name="upload" :tab="tabTitleFormat('上传',transferTaskCount.uploadCount)">
-              <div v-for="item in uploadProgressList" :key="item.transferRecordId">
+          <n-tabs type="segment" :on-update:value="initProgress">
+            <n-tab-pane name="upload" :tab="tabTitleFormat('上传', transferTaskCount.uploadCount)">
+              <div v-for="(item,index) in uploadProgressMap.values()" :key="index">
                 <div
                   style="
                     display: flex;
@@ -96,10 +94,16 @@
                   "
                 >
                   <div style="width: 30%">
-                    <n-ellipsis>{{ item.fileName }}</n-ellipsis>
+                    <n-ellipsis>{{item.fileName}}</n-ellipsis
+                    >
                   </div>
                   <div style="width: 50%; margin-left: 10px">
-                    <n-progress type="line" :percentage="item.percent" :indicator-placement="'inside'" processing />
+                    <n-progress
+                      type="line"
+                      :percentage="item.percent"
+                      :indicator-placement="'inside'"
+                      processing
+                    />
                   </div>
                   <div>
                     <n-button-group style="margin-left: 20px">
@@ -118,8 +122,8 @@
                 </div>
               </div>
             </n-tab-pane>
-            <n-tab-pane name="download" :tab="tabTitleFormat('下载',transferTaskCount.downloadCount)">
-              <div v-for="item in downloadProgressList" :key="item.transferRecordId">
+            <n-tab-pane name="download" :tab="tabTitleFormat('下载', transferTaskCount.downloadCount)">
+              <div v-for="(item,index) in downloadProgressMap.values()" :key="index">
                 <div
                   style="
                     display: flex;
@@ -134,7 +138,12 @@
                     <n-ellipsis>{{ item.fileName }}</n-ellipsis>
                   </div>
                   <div style="width: 50%; margin-left: 10px">
-                    <n-progress type="line" :percentage="item.percent" :indicator-placement="'inside'" processing />
+                    <n-progress
+                      type="line"
+                      :percentage="item.percent"
+                      :indicator-placement="'inside'"
+                      processing
+                    />
                   </div>
                   <div>
                     <n-button-group style="margin-left: 20px">
@@ -153,7 +162,7 @@
                 </div>
               </div>
             </n-tab-pane>
-            <n-tab-pane name="complete" :tab="tabTitleFormat('传输完成',transferTaskCount.completeCount)">
+            <n-tab-pane name="complete" :tab="tabTitleFormat('传输完成', transferTaskCount.completeCount)">
               <n-list hoverable clickable>
                 <n-list-item v-for="item in completeList" :key="item.id">
                   <div
@@ -226,32 +235,33 @@
 
 <script setup lang="jsx">
 import { h, nextTick, onBeforeUnmount, ref, watch } from 'vue';
-import {useMessage, useNotification} from 'naive-ui';
+import { useMessage, useNotification } from 'naive-ui';
 import { Icon } from '@iconify/vue';
 import { listen } from '@tauri-apps/api/event';
 import {
-	continueTransfer,
-	create,
-	download,
-	getCompleteList,
-	getDownloadList,
-	getFileInfos,
-	getUploadList,
-	pauseTransfer,
-	removeDirectory,
-	removeFile,
-	rename,
-	upload,
-	deleteRecord, getTransferTaskCount, cancelOpenFile
+  continueTransfer,
+  create,
+  download,
+  getCompleteList,
+  getDownloadList,
+  getFileInfos,
+  getUploadList,
+  pauseTransfer,
+  removeDirectory,
+  removeFile,
+  rename,
+  upload,
+  deleteRecord,
+  getTransferTaskCount,
+  cancelOpenFile,
+  openFile
 } from '@/theblind_shell/service/shell/fileManager';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
-import {shellWebSocket} from "@/utils/shell/msgWebSocket";
-import {openFile} from "../../../../theblind_shell/service/shell/fileManager";
+import { shellWebSocket } from '@/utils/shell/msgWebSocket';
 
-
-let webSocket = shellWebSocket;
+const webSocket = shellWebSocket;
 const notification = useNotification();
-const transferTaskCount=ref({uploadCount:0,downloadCount:0,completeCount:0});
+const transferTaskCount = ref({ uploadCount: 0, downloadCount: 0, completeCount: 0 });
 
 const enableTableLoading = ref(false);
 const props = defineProps({ channelId: String });
@@ -315,10 +325,10 @@ const directoryOptions = [
     label: '重命名',
     key: 'rename'
   },
-	{
-		label: '下载',
-		key: 'downloadDirectory'
-	},
+  {
+    label: '下载',
+    key: 'downloadDirectory'
+  },
   {
     label: () => h('span', { style: { color: 'red' } }, '删除'),
     key: 'deleteDirectory'
@@ -327,7 +337,6 @@ const directoryOptions = [
 
 const completeList = ref([]);
 let timer;
-let pauseStatus = false;
 const message = useMessage();
 
 const showDropdown = ref(false);
@@ -412,16 +421,15 @@ const handleContextMenu = e => {
  * @param item.status  传输状态
  */
 const clickPause = item => {
-  pauseStatus = true;
   switch (item.status) {
     case 'PAUSE':
       continueTransfer(props.channelId, item.transferRecordId).then(() => {
-        pauseStatus = false;
+				item.status='PROCESS';
       });
       break;
     case 'PROCESS':
       pauseTransfer(props.channelId, item.transferRecordId).then(() => {
-        pauseStatus = false;
+				item.status='PAUSE';
       });
       break;
     default:
@@ -437,23 +445,31 @@ const clickDelete = item => {
     }
   });
 };
+const downloadProgressMap = ref(new Map());
+const uploadProgressMap = ref(new Map());
 
 const initProgress = value => {
-  if (pauseStatus) {
-    return;
-  }
   switch (value) {
     case 'upload':
       getUploadList(props.channelId).then(requestResult => {
         if (requestResult.data) {
-          uploadProgressList.value = requestResult.data;
+          const map = new Map();
+          requestResult.data.forEach(record => {
+            map.set(record.transferRecordId, record);
+          });
+					console.log(`uploadProgressMap ${map}`)
+          uploadProgressMap.value = map;
         }
       });
       break;
     case 'download':
       getDownloadList(props.channelId).then(requestResult => {
         if (requestResult.data) {
-          downloadProgressList.value = requestResult.data;
+          const map = new Map();
+          requestResult.data.forEach(record => {
+            map.set(record.transferRecordId, record);
+          });
+          downloadProgressMap.value = map;
         }
       });
       break;
@@ -467,24 +483,13 @@ const initProgress = value => {
     default:
   }
 };
-const startIntervalProgressTask = value => {
-  if (timer) {
-    clearInterval(timer);
-  }
-  timer = setInterval(() => {
-    initProgress(value);
-  }, 1000);
-};
 
 let unlisten;
-const initFileDropListen= async ()=>{
-
-	unlisten= 	await listen('tauri://file-drop',  event => {
-		console.log(event);
-		 upload(props.channelId, currentDirectory.value, event.payload);
-	});
-
-}
+const initFileDropListen = async () => {
+  unlisten = await listen('tauri://file-drop', event => {
+    upload(props.channelId, currentDirectory.value, event.payload);
+  });
+};
 
 watch(
   activeDrawer,
@@ -582,8 +587,8 @@ const rowProps = row => {
         jumpPath(row.path);
         addHistoryPath(row.path);
       } else if (row.type === 'FILE') {
-				openFile(props.channelId,row.path);
-			}
+        openFile(props.channelId, row.path);
+      }
     },
     onContextmenu: e => {
       e.preventDefault();
@@ -757,11 +762,11 @@ const handleSelect = key => {
       modalOperate = key;
       break;
     case 'downloadFile':
-      download(props.channelId, currentSelectPath,false);
+      download(props.channelId, currentSelectPath, false);
       break;
-		case 'downloadDirectory':
-			download(props.channelId, currentSelectPath,true);
-			break;
+    case 'downloadDirectory':
+      download(props.channelId, currentSelectPath, true);
+      break;
     case 'deleteFile':
       removeFile(props.channelId, currentSelectPath).then(() => {
         loadFileInfos(currentDirectory.value);
@@ -777,39 +782,69 @@ const handleSelect = key => {
 };
 
 const refreshTransferTaskCount = () => {
-	getTransferTaskCount(props.channelId).then((requestResult)=>{
-		if (requestResult.data) {
-			transferTaskCount.value=requestResult.data;
-		}
-	});
-
-}
+  getTransferTaskCount(props.channelId).then(requestResult => {
+    if (requestResult.data) {
+      transferTaskCount.value = requestResult.data;
+    }
+  });
+};
 let refreshTransferTaskCountTime;
 
 const init = () => {
-
-	console.log("fileManger init");
+  console.log('fileManger init');
   loadFileInfos(currentDirectory.value);
 
-	refreshTransferTaskCountTime = setInterval(() => {
-		refreshTransferTaskCount();
-	}, 500);
-	webSocket?.addMonitor(props.channelId, 'TRANSFER_COMPLETE', message => {
-		window.console.info(`TRANSFER_COMPLETE 接收 ${message}`);
-		const msg = JSON.parse(message);
+  refreshTransferTaskCountTime = setInterval(() => {
+    refreshTransferTaskCount();
+  }, 500);
 
+	const createCompleteFileNotification=(operate,writePath,fileName)=>{
 		notification.create({
-			content: ()=>{
-				return `${msg.operate==='GET'?'下载':'上传'}完成。 路径：${msg.writePath}`;
+			content: () => {
+				return `${operate === 'GET' ? '下载' : '上传'}完成。 路径：${writePath}`;
 			},
 			duration: 8000,
-			meta: msg.fileName,
-			keepAliveOnHover:true,
-			closable:true
+			meta: fileName,
+			keepAliveOnHover: true,
+			closable: true
 		});
-	});
-	initFileDropListen();
+	}
 
+  webSocket?.addMonitor(props.channelId, 'UPLOAD_FILE_PROGRESS', message => {
+    window.console.info(`UPLOAD_FILE_PROGRESS 接收 ${message}`);
+    const msg = JSON.parse(message);
+    const { transferRecordId } = msg;
+    const map = uploadProgressMap.value;
+    if (map.has(transferRecordId)) {
+			console.log("包含")
+      const progress = map.get(transferRecordId);
+      progress.percent = msg.percent;
+      if (msg.status === 'COMPLETE') {
+        map.delete(transferRecordId);
+				createCompleteFileNotification(msg.operate,msg.writePath,msg.fileName);
+      }
+    } else {
+      map.set(transferRecordId, msg);
+    }
+  });
+
+  webSocket?.addMonitor(props.channelId, 'DOWNLOAD_FILE_PROGRESS', message => {
+    window.console.info(`DOWNLOAD_FILE_PROGRESS 接收 ${message}`);
+    const msg = JSON.parse(message);
+    const { transferRecordId } = msg;
+    const map = downloadProgressMap.value;
+    if (map.has(transferRecordId)) {
+      const progress = map.get(transferRecordId);
+      progress.percent = msg.percent;
+      if (msg.status === 'COMPLETE') {
+        map.delete(transferRecordId);
+				createCompleteFileNotification(msg.operate,msg.writePath,msg.fileName);
+      }
+    } else {
+      map.set(transferRecordId, msg);
+    }
+  });
+  initFileDropListen();
 };
 
 const clickTransfer = () => {
@@ -817,9 +852,9 @@ const clickTransfer = () => {
   initProgress('upload');
 };
 
-const tabTitleFormat=(prefix,count)=>{
-	return count==0?prefix:`${prefix}(${count})`
-}
+const tabTitleFormat = (prefix, count) => {
+  return count == 0 ? prefix : `${prefix}(${count})`;
+};
 
 init();
 
@@ -828,12 +863,12 @@ onBeforeUnmount(() => {
     clearInterval(timer);
   }
 
-	if (refreshTransferTaskCountTime) {
+  if (refreshTransferTaskCountTime) {
     clearInterval(refreshTransferTaskCountTime);
   }
-	if (unlisten) {
-		unlisten();
-	}
+  if (unlisten) {
+    unlisten();
+  }
 });
 </script>
 

@@ -8,6 +8,7 @@ import cn.hutool.core.io.watch.SimpleWatcher;
 import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.io.watch.watchers.DelayWatcher;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -274,6 +275,7 @@ public class FileManagerService {
         File file = FileUtil.file(writePath);
         FileUtil.mkParentDirs(file);
 
+        long size = fileManager.getSize(readPath);
         // todo  为以后 多线程做兼容
         Breakpoint breakpoint = breakpoints.get(0);
         breakpointCache.putIfAbsent(breakpoint.getId(), breakpoint);
@@ -292,6 +294,13 @@ public class FileManagerService {
                     current[0] = offset;
                     breakpoint.setCurrent(offset);
                     byteBuffer.clear();
+                    double percent = (double) offset / size * 100.0;
+                    WebSocket.sendIntervalMsg(
+                            channelId,
+                            WebSocket.MsgType.DOWNLOAD_FILE_PROGRESS,
+                            objectMapper.writeValueAsString(new Progress(NumberUtil.round(percent, 2).doubleValue(), channelId, file.getName(), TransferRecord.Status.PROCESS, transferRecord.id, FileOperate.GET, transferRecord.getReadPath(), transferRecord.getWritePath())),
+                            transferRecord.id);
+
                     if (pauseList.contains(transferRecord.id)) {
                         pauseList.remove(transferRecord.id);
                         log.debug("暂停 channelId{} transferRecord：{} fileName：{}  offset：{}", channelId, transferRecord.id, file.getName(), offset);
@@ -301,7 +310,8 @@ public class FileManagerService {
                 transferRecord.setStatus(TransferRecord.Status.COMPLETE);
                 updateTransferRecord(transferRecord);
 
-                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id, FileOperate.GET, transferRecord.getReadPath(), transferRecord.getWritePath())));
+                Progress completeProgress = new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id, FileOperate.GET, transferRecord.getReadPath(), transferRecord.getWritePath());
+                WebSocket.sendMsg(channelId, WebSocket.MsgType.DOWNLOAD_FILE_PROGRESS, objectMapper.writeValueAsString(completeProgress));
 
             } catch (IOException e) {
                 log.error("doUpload  channelId{} transferRecord：{} fileName：{}  offset：{} error:{}", channelId, transferRecord.id, file.getName(), current[0], e);
@@ -328,9 +338,10 @@ public class FileManagerService {
         Breakpoint breakpoint = breakpoints.get(0);
         breakpointCache.putIfAbsent(breakpoint.getId(), breakpoint);
 
+
         taskExecutor.submitUpload(sessionId, () -> getFileManager(channelId).upload(writePath, (outputStream) -> {
             File file = FileUtil.file(readPath);
-
+            long size = FileUtil.size(file);
             final long[] current = new long[1];
             try (FileChannel inChannel = FileChannel.open(file.toPath()); WritableByteChannel outChannel = Channels.newChannel(outputStream)) {
                 transferRecord.setStatus(TransferRecord.Status.PROCESS);
@@ -344,18 +355,26 @@ public class FileManagerService {
                     current[0] = offset;
                     breakpoint.setCurrent(offset);
                     byteBuffer.clear();
+                    double percent = (double) offset / size * 100.0;
+
+                    WebSocket.sendIntervalMsg(
+                            channelId,
+                            WebSocket.MsgType.UPLOAD_FILE_PROGRESS,
+                            objectMapper.writeValueAsString(new Progress(NumberUtil.round(percent, 2).doubleValue(), channelId, file.getName(), TransferRecord.Status.PROCESS, transferRecord.id, FileOperate.PUT, transferRecord.getReadPath(), transferRecord.getWritePath())),
+                            transferRecord.id);
+
                     if (pauseList.contains(transferRecord.id)) {
                         pauseList.remove(transferRecord.id);
                         log.debug("暂停 channelId{} transferRecord：{} fileName：{}  offset：{}", channelId, transferRecord.id, transferRecord.getWritePath(), offset);
                         return;
                     }
-
                 }
                 transferRecord.setStatus(TransferRecord.Status.COMPLETE);
                 updateTransferRecord(transferRecord);
 
 
-                WebSocket.sendMsg(channelId, WebSocket.MsgType.TRANSFER_COMPLETE, objectMapper.writeValueAsString(new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id, FileOperate.PUT, transferRecord.getReadPath(), transferRecord.getWritePath())));
+                Progress completeProgress = new Progress(100.0, channelId, file.getName(), TransferRecord.Status.COMPLETE, transferRecord.id, FileOperate.PUT, transferRecord.getReadPath(), transferRecord.getWritePath());
+                WebSocket.sendMsg(channelId, WebSocket.MsgType.UPLOAD_FILE_PROGRESS, objectMapper.writeValueAsString(completeProgress));
             } catch (IOException e) {
                 log.error("doUpload  channelId{} transferRecord：{} fileName：{}  offset：{} error:{}", channelId, transferRecord.id, transferRecord.getWritePath(), current[0], e);
             } finally {
@@ -462,7 +481,6 @@ public class FileManagerService {
     public List<Progress> getDownloadList(String channelId) {
         return getProgresses(channelId, FileOperate.GET);
     }
-
 
     public record Progress(double percent, String channelId, String fileName, TransferRecord.Status status,
                            String transferRecordId, FileOperate operate, String readPath, String writePath) {
