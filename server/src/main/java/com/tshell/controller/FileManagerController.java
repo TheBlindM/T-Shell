@@ -9,11 +9,11 @@ import com.tshell.module.vo.CompleteTransferRecordVO;
 import com.tshell.module.vo.TransferCountVO;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 
-import javax.inject.Inject;
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotBlank;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
 /**

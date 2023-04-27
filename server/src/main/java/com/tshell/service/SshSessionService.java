@@ -6,8 +6,8 @@ import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
 import com.tshell.module.vo.SshSessionVO;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.WebApplicationException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * @author TheBlind

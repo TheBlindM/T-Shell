@@ -2,7 +2,7 @@ package com.tshell.service;
 
 import cn.hutool.core.io.FileUtil;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;

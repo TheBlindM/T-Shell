@@ -11,12 +11,12 @@ import com.tshell.module.vo.CmdParameterVO;
 import com.tshell.module.vo.CmdVO;
 import com.tshell.module.entity.Cmd;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.Transactional;
-import javax.ws.rs.WebApplicationException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.stream.Collectors;
 

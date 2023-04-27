@@ -3,7 +3,7 @@ package com.tshell.config;
 import com.tshell.module.enums.AuthType;
 import com.tshell.utils.enums.EnumUtil;
 
-import javax.persistence.AttributeConverter;
+import jakarta.persistence.AttributeConverter;
 
 /**
  * @author TheBlind

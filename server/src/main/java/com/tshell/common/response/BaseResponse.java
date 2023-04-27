@@ -1,9 +1,9 @@
 package com.tshell.common.response;
 
 
+import jakarta.ws.rs.core.Response;
 import lombok.*;
 
-import javax.ws.rs.core.Response;
 
 
 @Data

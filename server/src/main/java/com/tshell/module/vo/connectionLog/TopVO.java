@@ -1,5 +1,6 @@
 package com.tshell.module.vo.connectionLog;
 
+import jakarta.persistence.Entity;
 import lombok.Data;
 
 import java.util.Objects;

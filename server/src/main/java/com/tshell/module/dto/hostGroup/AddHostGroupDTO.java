@@ -2,7 +2,7 @@ package com.tshell.module.dto.hostGroup;
 
 import com.tshell.module.entity.SessionGroup;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public record AddHostGroupDTO(
         @NotBlank(message = "组名称不能为空")

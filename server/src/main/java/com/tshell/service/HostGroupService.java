@@ -4,8 +4,8 @@ import com.tshell.module.dto.hostGroup.AddHostGroupDTO;
 import com.tshell.module.dto.hostGroup.UpdHostGroupDTO;
 import com.tshell.module.entity.*;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.ws.rs.WebApplicationException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * @author TheBlind

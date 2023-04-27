@@ -2,7 +2,7 @@ package com.tshell.module.dto.globalVariable;
 
 import com.tshell.module.entity.GlobalVariable;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * @author TheBlind

@@ -3,7 +3,7 @@ package com.tshell.module.dto.shortcutCmd;
 
 import com.tshell.module.entity.ShortcutCmd;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**

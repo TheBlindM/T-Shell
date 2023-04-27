@@ -4,13 +4,13 @@ import cn.hutool.core.date.DateUtil;
 import com.tshell.module.entity.ConnectionLog;
 import com.tshell.module.vo.connectionLog.TopVO;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.query.internal.NativeQueryImpl;
+import org.hibernate.query.sql.internal.NativeQueryImpl;
 import org.hibernate.transform.AliasToBeanResultTransformer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 /**

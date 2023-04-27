@@ -2,8 +2,8 @@ package com.tshell.module.dto.globalVariable;
 
 import com.tshell.module.entity.GlobalVariable;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * @author TheBlind

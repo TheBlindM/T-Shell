@@ -2,7 +2,7 @@ package com.tshell.service;
 
 import cn.hutool.core.date.DateUtil;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.File;
 import java.nio.file.Path;
 

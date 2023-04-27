@@ -4,9 +4,9 @@ import com.tshell.common.response.BaseResponse;
 import com.tshell.service.SyncChannelService;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  *

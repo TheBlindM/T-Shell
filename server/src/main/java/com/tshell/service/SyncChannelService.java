@@ -2,7 +2,7 @@ package com.tshell.service;
 
 import cn.hutool.core.collection.CollUtil;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.*;
 
 /**

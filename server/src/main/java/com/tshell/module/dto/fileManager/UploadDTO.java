@@ -3,8 +3,8 @@ package com.tshell.module.dto.fileManager;
 import lombok.Data;
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.util.List;
 

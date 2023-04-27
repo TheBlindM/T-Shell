@@ -9,9 +9,9 @@ import com.tshell.module.dto.terminal.SshInitConnectDTO;
 import com.jcraft.jsch.JSchException;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.List;
 

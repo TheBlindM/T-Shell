@@ -24,11 +24,11 @@ import com.tshell.module.vo.TransferCountVO;
 import com.tshell.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
-import javax.transaction.UserTransaction;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import jakarta.transaction.UserTransaction;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

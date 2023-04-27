@@ -10,12 +10,12 @@ import com.tshell.module.entity.*;
 import com.tshell.module.vo.ShortcutCmdImplVO;
 import com.tshell.module.vo.ShortcutCmdVO;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.transaction.*;
-import javax.ws.rs.WebApplicationException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.transaction.*;
+import jakarta.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

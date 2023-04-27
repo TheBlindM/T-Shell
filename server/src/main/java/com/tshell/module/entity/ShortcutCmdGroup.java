@@ -3,11 +3,12 @@ package com.tshell.module.entity;
 
 import cn.hutool.core.util.StrUtil;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.GenerationType;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 
 /**
  * 快捷命令组
@@ -17,7 +18,7 @@ import javax.persistence.Id;
 public class ShortcutCmdGroup extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     public int id;
 
     /**

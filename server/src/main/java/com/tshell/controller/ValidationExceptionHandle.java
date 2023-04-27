@@ -4,10 +4,10 @@ import cn.hutool.json.JSONUtil;
 import com.tshell.common.response.BaseResponse;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.validation.ValidationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+import jakarta.validation.ValidationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 
 /**
  * @author TheBlind

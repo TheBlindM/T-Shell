@@ -4,7 +4,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import com.tshell.core.FileOperate;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;

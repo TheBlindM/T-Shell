@@ -2,8 +2,8 @@ package com.tshell.module.dto.hostGroup;
 
 import com.tshell.module.entity.SessionGroup;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record UpdHostGroupDTO(
         @NotNull(message = "id不能为null")

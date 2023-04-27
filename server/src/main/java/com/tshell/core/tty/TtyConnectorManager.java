@@ -2,8 +2,8 @@ package com.tshell.core.tty;
 
 import com.tshell.core.Parameter;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;

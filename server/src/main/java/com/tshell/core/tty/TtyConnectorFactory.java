@@ -4,7 +4,7 @@ import com.tshell.core.JschPtyConnector;
 import com.tshell.core.Parameter;
 import com.jcraft.jsch.JSchException;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.io.IOException;
 
 /**
