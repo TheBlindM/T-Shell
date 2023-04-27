@@ -212,6 +212,7 @@ const joinChannel = (syncChannelId: string | null) => {
 	if (syncChannelId === currentSyncChannelId.value) {
 		removeBindChannel(sshChannelId);
 		currentSyncChannelId.value = null;
+		props.item.meta.syncChannel = null;
 	} else {
 		bindChannel(syncChannelId, sshChannelId).then(() => {
 			props.item.meta.syncChannel = {name: syncChannelId, backgroundColor: defaultSyncChannel[syncChannelId]};
