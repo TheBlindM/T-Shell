@@ -9,7 +9,8 @@ const shell: AuthRoute.Route = {
       component: 'self',
       meta: {
         title: '首页',
-        icon: 'icon-park-outline:analysis'
+        icon: 'icon-park-outline:analysis',
+        isTty: false
       }
     },
     {
@@ -20,7 +21,8 @@ const shell: AuthRoute.Route = {
         title: '连接中...',
         icon: 'mdi:vuejs',
         keepAlive: true,
-        multiTab: true
+        multiTab: true,
+				isTty: true
       }
     }
   ],

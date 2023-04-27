@@ -11,15 +11,17 @@
       :class="{ '!mr-0': isChromeMode && index === tab.tabs.length - 1, 'mr-10px': !isChromeMode }"
       @click="tab.handleClickTab(item.fullPath)"
       @close="tab.removeTab(item.fullPath)"
-      @contextmenu="handleContextMenu($event, item.fullPath)"
+      @contextmenu="handleContextMenu($event, item)"
     >
       <Icon v-if="item.meta.icon" :icon="item.meta.icon" class="inline-block align-text-bottom mr-4px text-16px" />
+			<n-tag v-if="item.meta!.syncChannel" :bordered="false" :style="{backgroundColor:item.meta.syncChannel.backgroundColor,color:'#b30c4f'}" >{{item.meta.syncChannel.name}}</n-tag>
       {{ item.meta.title }}
     </component>
   </div>
   <context-menu
     v-model:visible="dropdown.visible"
     :current-path="dropdown.currentPath"
+		:item="dropdown.item"
     :x="dropdown.x"
     :y="dropdown.y"
   />
@@ -43,6 +45,7 @@ const emit = defineEmits<Emits>();
 const theme = useThemeStore();
 const tab = useTabStore();
 
+
 const isChromeMode = computed(() => theme.tab.mode === 'chrome');
 const activeComponent = computed(() => (isChromeMode.value ? ChromeTab : ButtonTab));
 
@@ -64,6 +67,7 @@ const dropdown = reactive({
   visible: false,
   x: 0,
   y: 0,
+	item:undefined,
   currentPath: ''
 });
 function showDropdown() {
@@ -72,16 +76,16 @@ function showDropdown() {
 function hideDropdown() {
   dropdown.visible = false;
 }
-function setDropdown(x: number, y: number, currentPath: string) {
-  Object.assign(dropdown, { x, y, currentPath });
+function setDropdown(x: number, y: number,item:GlobalTabRoute, currentPath: string) {
+  Object.assign(dropdown, { x, y, item,currentPath });
 }
 
 /** 点击右键菜单 */
-async function handleContextMenu(e: MouseEvent, fullPath: string) {
+async function handleContextMenu(e: MouseEvent, item:GlobalTabRoute) {
   e.preventDefault();
   const { clientX, clientY } = e;
   hideDropdown();
-  setDropdown(clientX, clientY, fullPath);
+  setDropdown(clientX, clientY, item,item.fullPath);
   await nextTick();
   showDropdown();
 }

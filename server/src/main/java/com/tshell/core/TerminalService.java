@@ -7,6 +7,7 @@ import com.tshell.module.dto.terminal.LocalInitConnectDTO;
 import com.tshell.module.dto.terminal.SshInitConnectDTO;
 import com.tshell.module.entity.Session;
 import com.tshell.module.entity.SshSession;
+import com.tshell.service.SyncChannelService;
 import com.tshell.service.ConnectionLogService;
 import com.tshell.socket.WebSocket;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.WebApplicationException;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -39,6 +39,9 @@ public class TerminalService {
 
     @Inject
     ConnectionLogService connectionLogService;
+
+    @Inject
+    SyncChannelService syncChannelService;
 
 
     private Parameter.SshParameter convertToSshParameter(SshInitConnectDTO sshInitConnectDTO) {
@@ -141,14 +144,30 @@ public class TerminalService {
         });
     }
 
+
+
     public void executeCmd(String key, String cmd) {
-        ttyConnectorManager.getConnector(key).ifPresent((ttyConnector -> {
-            try {
-                ttyConnector.write(cmd);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }));
+        syncChannelService.getSshChannelIds(key).ifPresentOrElse((sshChannelIds) -> {
+            sshChannelIds.forEach((sshChannelId) -> {
+                ttyConnectorManager.getConnector(sshChannelId).ifPresent((ttyConnector -> {
+                    try {
+                        ttyConnector.write(cmd);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
+            });
+
+        }, () -> {
+            ttyConnectorManager.getConnector(key).ifPresent((ttyConnector -> {
+                try {
+                    ttyConnector.write(cmd);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+        });
+
     }
 
 
@@ -159,6 +178,7 @@ public class TerminalService {
 
     public void close(String channelId) {
         ttyConnectorManager.getConnector(channelId).ifPresent(ttyConnector -> {
+            syncChannelService.remove(channelId);
             int sessionCount = ttyConnectorManager.getSessionCount(ttyConnector.getSessionId());
             if (sessionCount == 1) {
                 fileManagerService.pauseTransfer(channelId);

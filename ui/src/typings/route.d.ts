@@ -116,8 +116,19 @@ declare namespace AuthRoute {
     activeMenu?: RouteKey;
     /** 表示是否是多级路由的中间级路由(用于转换路由数据时筛选多级路由的标识，定义路由时不用填写) */
     multi?: boolean;
+		/** 是否终端显示 */
+    isTty?: boolean;
+		/** 同步频道显示 */
+		syncChannel?: SyncChannel;
   };
 
+	/** 同步频道 */
+	type SyncChannel= {
+		/** 频道名称 */
+		name: string;
+		/** backgroundColor */
+		backgroundColor: string;
+	}
   /** 单个路由的类型结构(动态路由模式：后端返回此类型结构的路由) */
   interface Route {
     /** 路由名称(路由唯一标识) */

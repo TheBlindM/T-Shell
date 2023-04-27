@@ -244,8 +244,6 @@ export const useTabStore = defineStore('tab-store', {
     },
     /** 是否包含* */
     includeTab(fullPath: string) {
-      console.log(this.tabs);
-      debugger;
       const item = this.tabs.find(tab => tab.fullPath === fullPath);
       return item != null;
     }
