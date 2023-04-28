@@ -217,7 +217,6 @@ const handleContextRightClickMenu = e => {
 /* 下拉菜单 */
 const showSearchDropdownRef = ref(false);
 const searchDropdownOptions = ref([]);
-let isInMenuSelection = false;
 
 const getCurrentCursorIndex = () => {
   return term.buffer.normal.cursorX;
@@ -317,7 +316,6 @@ const handleSearchSelect = (key, option) => {
   }
 
   showSearchDropdownRef.value = false;
-  isInMenuSelection = false;
 };
 
 async function initConnect() {
@@ -376,7 +374,6 @@ const hideDropdownMenu = e => {
   if (e?.toElement?.className.indexOf('n-dropdown') !== -1) {
     return;
   }
-  isInMenuSelection = false;
   showSearchDropdownRef.value = false;
   searchDropdownOptions.value = [];
 };
@@ -588,7 +585,7 @@ onMounted(() => {
   };
 
   const onUpAndDownKeysHandle = () => {
-    if (showSearchDropdownRef.value) {
+    if (showSearchDropdownRef.value===true) {
       return;
     }
     isOnInputData = false;
@@ -611,7 +608,7 @@ onMounted(() => {
       case '40':
       case '\u001bOB':
       case '\u001bOA':
-        onUpAndDownKeysHandle();
+				isOnInputData = false;
         break;
       default:
         isOnInputData = true;
@@ -619,15 +616,7 @@ onMounted(() => {
 
     webSocket?.sendJsonMessage(new Msg(channelId, data, MessageType.CMD));
   });
-  watch(
-    () => showSearchDropdownRef.value,
-    () => {
-      if (!showSearchDropdownRef.value) {
-        isInMenuSelection = false;
-      }
-    },
-    { immediate: true }
-  );
+
 
   term.attachCustomKeyEventHandler(e => {
     const { keyCode, ctrlKey,shiftKey } = e;
@@ -655,11 +644,8 @@ onMounted(() => {
       return true;
     }
 
-    if (moveKey.includes(keyCode) && showSearchDropdownRef.value) {
-      isInMenuSelection = true;
-    }
 
-    if (isInMenuSelection && menuKeyCodes.includes(keyCode)) {
+    if (showSearchDropdownRef.value  === true && menuKeyCodes.includes(keyCode)) {
       if (keyCode === 27) {
         showSearchDropdownRef.value = false;
       }
