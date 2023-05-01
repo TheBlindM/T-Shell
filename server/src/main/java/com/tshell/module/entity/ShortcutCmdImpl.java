@@ -25,7 +25,7 @@ import jakarta.persistence.Id;
 public class ShortcutCmdImpl extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
     /**
      * 命令模板   支持占位符 如    ${全局变量}

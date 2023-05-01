@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
 public class HistoryCmd extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private String cmdText;

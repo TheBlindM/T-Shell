@@ -20,7 +20,7 @@ import jakarta.persistence.Id;
 public class SessionGroup extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
     private String groupName;
     private int parentId;

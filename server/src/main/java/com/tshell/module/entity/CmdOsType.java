@@ -18,7 +18,7 @@ import jakarta.persistence.*;
 public class CmdOsType extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
 
     private int cmdId;

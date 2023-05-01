@@ -43,7 +43,7 @@ import jakarta.persistence.Id;
 public class Cmd extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
 
     private int parentCmdId;

@@ -25,7 +25,7 @@ import java.util.List;
 public class Option extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
 
      private int cmdId;

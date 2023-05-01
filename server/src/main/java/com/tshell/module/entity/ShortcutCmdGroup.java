@@ -18,7 +18,7 @@ import jakarta.persistence.Id;
 public class ShortcutCmdGroup extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
 
     /**

@@ -14,7 +14,7 @@ import jakarta.persistence.Id;
 public class Group extends PanacheEntityBase {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   public int id;
   private String groupName;
 

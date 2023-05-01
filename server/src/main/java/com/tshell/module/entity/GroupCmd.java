@@ -15,7 +15,7 @@ public class GroupCmd extends PanacheEntityBase {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
     private Integer groupId;
     private Integer fastCmdId;

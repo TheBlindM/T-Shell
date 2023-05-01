@@ -19,7 +19,7 @@ import jakarta.persistence.Id;
 public class LocalSession extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
     private String sessionName;
     private Integer sessionId;

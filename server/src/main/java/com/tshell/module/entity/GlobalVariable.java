@@ -25,7 +25,7 @@ import jakarta.persistence.Id;
 public class GlobalVariable extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int id;
     private String varName;
     private String value;
