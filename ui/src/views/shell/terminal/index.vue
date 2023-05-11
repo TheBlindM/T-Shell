@@ -96,31 +96,13 @@
         <n-button @click="onPlaceholderClick">确定</n-button>
       </div>
     </n-modal>
-
-    <n-modal
-      v-model:show="showKeyboardInteractiveModal"
-      transform-origin="center"
-      style="max-height: 320px; width: 400px"
-      preset="dialog"
-      size="huge"
-      :show-icon="false"
-      aria-modal="true"
-    >
-      <div class="wh-full mt-30px">
-        <n-input v-model:value="keyboardInteractive.username" placeholder="输入用户名" />
-        <n-input v-model:value="keyboardInteractive.pwd" type="password" placeholder="输入密码" />
-      </div>
-      <div class="w-full">
-        <n-button class="w-full" @click="onKeyboardInteractiveClick">确定</n-button>
-      </div>
-    </n-modal>
   </div>
 </template>
 
 <script setup lang="jsx">
 import { h, nextTick, onActivated, onBeforeMount, onDeactivated, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { useNotification } from 'naive-ui';
+import {NInput, useNotification,useDialog} from 'naive-ui';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import { Icon } from '@iconify/vue';
@@ -138,6 +120,7 @@ import { cancelOpenFile } from '@/theblind_shell/service/shell/fileManager';
 import { getSingle as getSshSession } from '@/theblind_shell/service/shell/host';
 
 window.console.info('---------------setup-------------');
+const dialog = useDialog()
 const app = useAppStore();
 const route = useRoute();
 const tabStore = useTabStore();
@@ -318,6 +301,9 @@ const handleSearchSelect = (key, option) => {
   showSearchDropdownRef.value = false;
 };
 
+/* 键盘交互 */
+const keyboardInteractive = ref({username:undefined,pwd:undefined});
+
 async function initConnect() {
   const { cols, rows } = term;
   let connectState = false;
@@ -341,12 +327,31 @@ async function initConnect() {
   } else {
     window.console.info('ssh');
     const sshSessionResult = await getSshSession(sessionId);
-		console.log(sshSessionResult)
     let resultData = null;
     if (sshSessionResult.data.authType === 'KEYBOARD_INTERACTIVE') {
-			console.log(sshSessionResult.data.authType)
-			showKeyboardInteractiveModal.value=true;
-
+			const keyboardInteractiveDialog=dialog.warning({
+				title: route.query.title,
+				positiveText: '确定',
+				content: () => {
+					return h("div",{class:["wh-full", "mt-30px"]},[h(NInput,{value:keyboardInteractive.value.username,placeholder:'输入用户名',onUpdateValue: (v) => {
+						keyboardInteractive.value.username = v;
+						return v;
+					}}),h(NInput,{value:keyboardInteractive.value.pwd,onUpdateValue: (v) => {
+							keyboardInteractive.value.pwd = v;
+							return v;
+						},type:'password',placeholder:'输入密码'})])
+        },
+				onPositiveClick: async () => {
+					keyboardInteractiveDialog.loading = true;
+					const sshInitConnectResultData = await sshInitConnect(sessionId, channelId, cols, rows, width, height, keyboardInteractive.value.username, keyboardInteractive.value.pwd);
+					if (sshInitConnectResultData.error == null) {
+						connectState = true;
+						return true;
+					}
+					keyboardInteractiveDialog.loading = false;
+					return false;
+				}
+			})
 
     } else {
       resultData = await sshInitConnect(sessionId, channelId, cols, rows, width, height, null, null);
@@ -392,22 +397,11 @@ const onScroll = e => {
   window.console.log(`onScroll:${e}`);
 };
 
-/* 键盘交互 */
-const showKeyboardInteractiveModal=ref(false);
-const keyboardInteractive = ref({username:undefined,pwd:undefined});
+
 // 连接状态
 let connectState = false;
-const onKeyboardInteractiveClick = () => {
-	const { cols, rows } = term;
-	const width = document.getElementById('container')?.offsetWidth;
-	const height = document.getElementById('container')?.offsetHeight;
+const onKeyboardInteractiveClick = async () => {
 
-		sshInitConnect(sessionId, channelId, cols, rows, width, height,keyboardInteractive.value.username ,keyboardInteractive.value.pwd).then(resultData=>{
-			if (resultData.error == null) {
-				connectState = true;
-				showKeyboardInteractiveModal.value=false;
-			}
-		});
 
 }
 
