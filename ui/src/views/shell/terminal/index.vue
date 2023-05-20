@@ -442,10 +442,10 @@ onMounted(() => {
 
   const fontSize = 18;
   term = new Terminal({
-    rendererType: 'canvas',
+    rendererType: 'webgl',
     name: `terminal${channelId}`,
     rightClickSelectsWord: true,
-    scrollback: 800,
+    scrollback: 25000,
     disableStdin: false,
     cursorStyle: 'block',
     cursorBlink: true,
