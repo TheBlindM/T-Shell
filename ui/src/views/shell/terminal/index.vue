@@ -118,6 +118,7 @@ import FileManager from '@/views/shell/terminal/components/FileManager.vue';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
 import { cancelOpenFile } from '@/theblind_shell/service/shell/fileManager';
 import { getSingle as getSshSession } from '@/theblind_shell/service/shell/host';
+import {appWindow} from "@tauri-apps/api/window";
 
 window.console.info('---------------setup-------------');
 const dialog = useDialog()
@@ -463,17 +464,23 @@ onMounted(() => {
   fitAddon = new FitAddon();
   term.loadAddon(fitAddon);
 
-  async function resizeScreen() {
-    window.console.info('调整屏幕大小');
-    if (resizeTimeout) {
-      clearTimeout(resizeTimeout);
-    }
-    resizeTimeout = setTimeout(() => {
-      resizeTimeout = null;
-      fitAddon.fit();
-      term.scrollToBottom();
-    }, 100);
-  }
+	const xtermCore = term['_core']
+	async function resizeScreen() {
+		window.console.info('调整屏幕大小');
+		if (resizeTimeout) {
+			clearTimeout(resizeTimeout);
+		}
+		resizeTimeout = setTimeout(() => {
+			resizeTimeout = null;
+			appWindow.isMinimized().then((minimized)=>{
+				if (term.element && getComputedStyle(term.element).getPropertyValue('height') !== 'auto'&&!minimized) {
+					fitAddon.fit();
+					xtermCore.viewport._refresh()
+					term.scrollToBottom();
+				}
+			})
+		}, 300);
+	}
 
   window.addEventListener('resize', resizeScreen);
 
