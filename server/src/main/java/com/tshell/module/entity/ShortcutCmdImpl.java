@@ -2,15 +2,11 @@ package com.tshell.module.entity;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
 
 /**
  * @author TheBlind
@@ -25,8 +21,13 @@ import jakarta.persistence.Id;
 public class ShortcutCmdImpl extends PanacheEntityBase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public int id;
+    @GeneratedValue(strategy=GenerationType.TABLE,generator="table_gen")
+    @TableGenerator(
+            name = "table_gen",
+            initialValue = 50, //初始化值
+            allocationSize=3 //累加值
+    )
+    public Integer id;
     /**
      * 命令模板   支持占位符 如    ${全局变量}
      */

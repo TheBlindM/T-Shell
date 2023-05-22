@@ -2,11 +2,11 @@
   <n-spin :show="showSpin">
     <div style="width: 100%; height: 100%">
       <n-form ref="formRef" :label-width="80" :model="formValue" :rules="rules">
-        <n-form-item label="名称" path="cmd">
+        <n-form-item label="名称" path="name">
           <n-input v-model:value="formValue.name" placeholder="命令" />
         </n-form-item>
 
-        <n-form-item label="组" path="describe">
+        <n-form-item label="组" path="group">
           <n-tree-select
             v-model:value="formValue.shortcutCmdGroupIdList"
             multiple
@@ -18,9 +18,9 @@
           />
         </n-form-item>
 
-        <n-form-item label="命令" path="options">
+        <n-form-item label="命令" path="cmd">
           <n-space>
-            <div v-for="(tag, index) in formValue.shortcutCmdImplList" style="display: inline-block">
+            <div v-for="(tag, index) in formValue.shortcutCmdImplList" :key="tag.cmdTemplate" style="display: inline-block">
               <n-tag
                 style="user-select: none"
                 type="info"
@@ -101,7 +101,7 @@
           <n-tree-select
             v-model:value="cmdImplFormValue.shortcutCmdTtyTypeIdList"
             multiple
-            :options="osTypeOptionsRef"
+            :options="ttyTypeOptionsRef"
             label-field="name"
             key-field="id"
             children-field="children"
@@ -132,8 +132,8 @@ import type { FormInst } from 'naive-ui';
 import { useMessage } from 'naive-ui';
 import { Icon } from '@iconify/vue';
 import { useAppStore } from '@/store';
-import { getListById, selectTree as osTypeSelectTree } from '@/theblind_shell/service/shell/ttyType';
-import { add as addCmd, getSingle, upd } from '@/theblind_shell/service/shell/shortcutCmd';
+import { getListById, selectTree as ttyTypeSelectTree } from '@/theblind_shell/service/shell/ttyType';
+import {  getSingle, upd } from '@/theblind_shell/service/shell/shortcutCmd';
 import { parentTree as shortcutCmdGroupTree } from '@/theblind_shell/service/shell/shortcutCmdGroup';
 import { retrieve, retrieveCmd } from '@/theblind_shell/service/shell/retrieve';
 
@@ -141,39 +141,13 @@ const app = useAppStore();
 app.disabledDrawerMouseleave();
 const showSpin = ref(true);
 interface Props {
-  id: number;
+  groupId: number;
 }
 
 const rules = {
   osTypeId: {
     required: true,
     message: '选择父级',
-    trigger: 'blur'
-  }
-};
-
-const osTypeRules = {
-  parentId: {
-    required: true,
-    message: '选择父级',
-    trigger: 'blur'
-  },
-  osTypeName: {
-    required: true,
-    message: '输入主机名称',
-    trigger: 'blur'
-  }
-};
-const parameterRules = {
-  index: {
-    required: true,
-    message: '输入下标',
-    type: 'number',
-    trigger: ['blur', 'input']
-  },
-  description: {
-    required: true,
-    message: '输入描述',
     trigger: 'blur'
   }
 };
@@ -199,15 +173,7 @@ const message = useMessage();
 const props = defineProps<Props>();
 const emits = defineEmits(['changeShowModal', 'refreshTree']);
 
-const showOsTypeModal = ref<boolean>(false);
-const osTypeDialogTitle = ref<string>('新建');
-const cmdOsTypeTagListRef = ref<CmdTag[]>([]);
-const osTypeFormRef = ref<FormInst | null>(null);
-
-const isOsTypeEdit = ref<boolean>(false);
-const osTypeFormBtnLoading = ref<boolean>(false);
-const osTypeOptionsRef = ref<any>([]);
-const currentOsTypeIdRef = ref<number>();
+const ttyTypeOptionsRef = ref<any>([]);
 
 /* cmdImpl */
 const cmdImplFormRef = ref<FormInst | null>(null);
@@ -222,7 +188,7 @@ const shortcutCmdGroupTreeRef = ref<any>([]);
 const getDefaultCmdValue = () => {
   return {
     name: '',
-    shortcutCmdGroupIdList: [],
+    shortcutCmdGroupIdList: [props.groupId],
     shortcutCmdImplList: []
   };
 };
@@ -235,57 +201,14 @@ const initShortcutCmdGroupTree = () => {
   });
 };
 
-const getDefaultOsTypeValue = () => {
-  return {
-    osTypeId: null,
-    compatible: true
-  };
-};
-
 const formValue = ref<any>(getDefaultCmdValue());
-
-const osTypeFormValue = ref<any>(getDefaultOsTypeValue());
 
 let formBtnLoading = false;
 
-const refreshCmdOsTypeTagList = () => {
-  const { cmdOsTypeList } = formValue.value;
-
-  if (cmdOsTypeList.length === 0) {
-    cmdOsTypeTagListRef.value = [];
-    return;
-  }
-  const ids: number[] = [];
-  const map: Map<number, boolean> = new Map();
-  cmdOsTypeList.forEach((val: { osTypeId: number; compatible: boolean }, idx: number) => {
-    ids.push(val.osTypeId);
-    map.set(val.osTypeId, val.compatible);
-  });
-  getListById({ osTypeIds: ids }).then(resultData => {
-    const { data } = resultData;
-
-    const cmdOsTypeTagList: { osTypeId: number; compatible: any; osTypeName: string }[] = [];
-    data?.forEach((val: { id: number; compatible: boolean; osTypeName: string }) => {
-      cmdOsTypeTagList.push({
-        osTypeId: val.id,
-        compatible: map.get(val.id),
-        osTypeName: val.osTypeName
-      });
-    });
-    cmdOsTypeTagListRef.value = cmdOsTypeTagList;
-  });
-  /*  cmdOsTypeList.forEach((val: { osTypeId: number; compatible: boolean }) => {
-		getOsTypeSingle(getRealId(val.osTypeId)).then(resultData => {
-			const { data } = resultData;
-			cmdOsTypeTagList.push({ osTypeId: val.osTypeId, compatible: data.compatible, osTypeName: data.osTypeName });
-		});
-	}); */
-};
-
-const initOsTypeTree = () => {
-  osTypeSelectTree().then(requestResult => {
+const initTtyTypeTree = () => {
+  ttyTypeSelectTree().then(requestResult => {
     if (requestResult.data != null) {
-      osTypeOptionsRef.value = requestResult.data;
+      ttyTypeOptionsRef.value = requestResult.data;
     }
   });
 };
@@ -298,13 +221,13 @@ const confirmForm = (e: MouseEvent) => {
   formBtnLoading = true;
   formRef.value?.validate(errors => {
     if (!errors) {
-      upd(formValue.value, props.id).then(resultData => {
+      upd(formValue.value, props.groupId).then(resultData => {
         if (resultData.data != null) {
           console.log('刷新');
           message.success('成功');
           emits('changeShowModal', false);
           emits('refreshTree');
-          // app.enableDrawerMouseleave();
+          app.enableDrawerMouseleave();
         }
       });
     } else {
@@ -351,7 +274,7 @@ function confirmCmdImplForm(e: MouseEvent) {
   cmdImplFormBtnLoading.value = true;
   cmdImplFormRef.value?.validate(async errors => {
     if (!errors) {
-      const resultData = await getListById({ osTypeIds: cmdImplFormValue.value.shortcutCmdTtyTypeIdList });
+      const resultData = await getListById({ ttyTypeIds: cmdImplFormValue.value.shortcutCmdTtyTypeIdList });
       const { data } = resultData;
       cmdImplFormValue.value.shortcutCmdTtyTypeNameList = [];
       const { shortcutCmdTtyTypeNameList } = cmdImplFormValue.value;
@@ -462,7 +385,7 @@ const handleSearchSelect = (key: string | number, option: any) => {
 };
 
 const initDate = () => {
-  getSingle(props.id).then(requestResult => {
+  getSingle(props.groupId).then(requestResult => {
     if (requestResult.data != null) {
       formValue.value = requestResult.data;
       showSpin.value = false;
@@ -471,6 +394,6 @@ const initDate = () => {
 };
 /* 初始化数据 */
 initDate();
-initOsTypeTree();
+initTtyTypeTree();
 initShortcutCmdGroupTree();
 </script>

@@ -87,7 +87,7 @@
       :on-after-leave="onAfterLeave"
       @contextmenu="disabledContextMenu"
     >
-      <UpdCmd :id="currentCmdIdImplRef" @change-show-modal="changeUpdCmdShowModal" @refreshTree="initGroupTree" />
+      <UpdCmd :group-id="currentCmdIdImplRef" @change-show-modal="changeUpdCmdShowModal" @refreshTree="initGroupTree" />
     </n-modal>
   </div>
 </template>

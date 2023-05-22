@@ -155,7 +155,13 @@ public class ShortcutCmdService {
         updShortcutCmdDTO.copyProperty(shortcutCmd);
 
         GroupShortcutCmd.delete("shortcutCmdId = ?1", shortcutCmdId);
-        ShortcutCmdImpl.delete("shortcutCmdId = ?1", shortcutCmdId);
+
+
+        List<ShortcutCmdImpl> list = ShortcutCmdImpl.list("shortcutCmdId = ?1", shortcutCmdId);
+        List<Integer> collect = list.stream().mapToInt(ShortcutCmdImpl::getId).boxed().collect(Collectors.toList());
+
+        ShortcutCmdImpl.delete("id in ?1", collect);
+        ShortcutCmdImplTtyType.delete("shortcutCmdImplId in ?1", collect);
         userTransaction.commit();
         List<Integer> shortcutCmdGroupIdList = updShortcutCmdDTO.shortcutCmdGroupIdList();
         if (CollectionUtil.isNotEmpty(shortcutCmdGroupIdList)) {
