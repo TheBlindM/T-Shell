@@ -59,8 +59,8 @@ public class ShortcutCmdService {
                 groupShortcutCmd.persist();
             });
         }
-
-
+        userTransaction.commit();
+        userTransaction.begin();
         List<AddShortcutCmdImplDTO> addShortcutCmdImplDTOList = addShortcutCmdDTO.shortcutCmdImplList();
         if (CollectionUtil.isNotEmpty(addShortcutCmdImplDTOList)) {
             for (AddShortcutCmdImplDTO addShortcutCmdImplDTO : addShortcutCmdImplDTOList) {
@@ -152,6 +152,7 @@ public class ShortcutCmdService {
             throw new WebApplicationException("该变量名称已存在", 500);
         }
         userTransaction.begin();
+        shortcutCmd = ShortcutCmd.<ShortcutCmd>findByIdOptional(shortcutCmdId).orElseThrow(() -> new WebApplicationException(shortcutCmdId + "不存在"));
         updShortcutCmdDTO.copyProperty(shortcutCmd);
 
         GroupShortcutCmd.delete("shortcutCmdId = ?1", shortcutCmdId);
