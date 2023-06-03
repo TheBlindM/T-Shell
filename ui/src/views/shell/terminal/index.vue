@@ -1,9 +1,9 @@
 <template>
-  <div class="h-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu" @mouseleave="hideDropdownMenu">
-    <div id="container" style="height: 95.7%">
+  <div class="h-full w-full shadow-sm rounded-16px" @contextmenu="disabledContextMenu" @mouseleave="hideDropdownMenu">
+    <div id="container" style="height: 100%;width: 100%;">
       <div
         :id="`terminal${channelId}`"
-        class="h-full"
+				style="height: 100%; width: 100%; "
         @contextmenu="handleContextRightClickMenu"
         @scroll="onScroll"
       ></div>
@@ -36,15 +36,15 @@
       />
     </div>
     <!--		position: relative; top: -28px	-->
-    <dark-mode-container style="height: 26px; position: relative; bottom: -1%">
+<!--    <dark-mode-container style="height: 26px; position: relative; bottom: -1%">
       <n-button-group>
-        <n-button size="tiny" style="height: 24px" @click="active = true"> 历史命令</n-button>
+        <n-button size="tiny" style="height: 24px" @click="activeHistoryCommand = true"> 历史命令</n-button>
         <n-button size="tiny" style="height: 24px" @click="activeFileManager = true"> 文件管理</n-button>
       </n-button-group>
-    </dark-mode-container>
+    </dark-mode-container>-->
 
     <n-modal
-      v-model:show="active"
+      v-model:show="activeHistoryCommand"
       transform-origin="center"
       style="height: 450px; width: 600px"
       preset="dialog"
@@ -128,7 +128,7 @@ const app = useAppStore();
 const route = useRoute();
 const tabStore = useTabStore();
 const notification = useNotification();
-const active = ref(false);
+const activeHistoryCommand = ref(false);
 const activeFileManager = ref(false);
 const { fullPath } = route;
 const { sessionId } = route.query;
@@ -173,7 +173,15 @@ const rightClickOptions = [
   {
     label: '粘贴',
     key: 'paste'
-  }
+  },
+	{
+		label: '历史命令',
+		key: 'historyCommand'
+	},
+	{
+		label: '文件管理',
+		key: 'fileManager'
+	}
 ];
 
 const handleRightClickMenuSelect = key => {
@@ -188,6 +196,11 @@ const handleRightClickMenuSelect = key => {
         terminalFocus();
       });
       break;
+		case 'historyCommand':
+			activeHistoryCommand.value=true;
+		case 'fileManager':
+			activeFileManager.value=true;
+			break;
     default:
   }
 };

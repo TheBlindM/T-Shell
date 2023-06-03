@@ -38,7 +38,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  showPadding: true
+  showPadding: false
 });
 
 interface Emits {
