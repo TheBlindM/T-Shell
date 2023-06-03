@@ -107,6 +107,8 @@ import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import { Icon } from '@iconify/vue';
 import { readText, writeText } from '@tauri-apps/api/clipboard';
+import { WebglAddon } from 'xterm-addon-webgl'
+import {appWindow} from "@tauri-apps/api/window";
 import { useTabStore, useAppStore } from '@/store';
 import 'xterm/css/xterm.css';
 import { MessageType, Msg, shellWebSocket } from '@/utils/shell/msgWebSocket';
@@ -118,7 +120,7 @@ import FileManager from '@/views/shell/terminal/components/FileManager.vue';
 import { disabledContextMenu } from '@/utils/common/contextmenu';
 import { cancelOpenFile } from '@/theblind_shell/service/shell/fileManager';
 import { getSingle as getSshSession } from '@/theblind_shell/service/shell/host';
-import {appWindow} from "@tauri-apps/api/window";
+import {getConfig} from "@/theblind_shell/service/shell/config";
 
 window.console.info('---------------setup-------------');
 const dialog = useDialog()
@@ -141,6 +143,7 @@ const y = ref(0);
 let resizeTimeout;
 let term;
 let fitAddon = null;
+let webGLAddon = null;
 let webSocket;
 
 let currentOptionValue;
@@ -391,7 +394,8 @@ onBeforeMount(() => {
 onActivated(() => {
   window.console.info('onActivated');
   terminalFocus();
-  fitAddon.fit();
+
+  fitAddon?.fit();
 });
 const notificationMap = new Map();
 const onScroll = e => {
@@ -401,13 +405,9 @@ const onScroll = e => {
 
 // 连接状态
 let connectState = false;
-const onKeyboardInteractiveClick = async () => {
 
 
-}
-
-
-onMounted(() => {
+onMounted(async () => {
   webSocket = shellWebSocket;
 
   window.console.info('onMounted');
@@ -441,25 +441,28 @@ onMounted(() => {
     }
   });
 
+
+
   const fontSize = 18;
   term = new Terminal({
-    rendererType: 'webgl',
-    name: `terminal${channelId}`,
-    rightClickSelectsWord: true,
-    scrollback: 25000,
-    disableStdin: false,
-    cursorStyle: 'block',
-    cursorBlink: true,
-    tabStopWidth: 8,
-    screenKeys: true,
-    allowProposedApi: true,
-    fontSize, // 字体大小
-    theme: {
-      foreground: '#f8ecec', // 字体
-      background: '#060101' // 背景色
-      // cursor: "help",//设置光标
-    }
+    name: `terminal${channelId}`
   });
+
+	var failedResult = await getConfig();
+	let config;
+	if (failedResult.data != null) {
+		 config=failedResult.data;
+		term.options.cursorStyle = config.terminal.cursorShape
+		term.options.cursorBlink = config.terminal.cursorBlink
+		term.options.scrollback = config.terminal.scrollbackLines
+		term.options.wordSeparator = config.terminal.wordSeparator
+		term.options.drawBoldTextInBrightColors = config.terminal.drawBoldTextInBrightColors
+		term.options.fontWeight = config.terminal.fontWeight
+		term.options.fontSize = config.terminal.fontSize
+		term.options.fontWeightBold = config.terminal.fontWeightBold
+	}
+	webGLAddon = new WebglAddon();
+	term.loadAddon(webGLAddon);
 
   fitAddon = new FitAddon();
   term.loadAddon(fitAddon);
@@ -476,13 +479,20 @@ onMounted(() => {
 				if (term.element && getComputedStyle(term.element).getPropertyValue('height') !== 'auto'&&!minimized) {
 					fitAddon.fit();
 					xtermCore.viewport._refresh()
-					term.scrollToBottom();
 				}
 			})
 		}, 300);
 	}
 
   window.addEventListener('resize', resizeScreen);
+
+	term.onSelectionChange(() => {
+		if (term.getSelection()) {
+			if (config?.terminal?.copyOnSelect) {
+				writeText(term.getSelection());
+			}
+		}
+	})
 
   // 第一次进入
   let isEnterForTheFirstTime = true;

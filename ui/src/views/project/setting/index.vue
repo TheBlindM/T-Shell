@@ -11,10 +11,21 @@
 				</n-button>
 			</n-space>
 		</div>
+		<n-scrollbar style="max-height: 520px" trigger="none">
 		<div class="tab-content">
-			<DarkMode/>
-			<ThemeColorSelect/>
+			<template v-if="key==='应用'">
+				<DarkMode/>
+				<ThemeColorSelect/>
+			</template>
+			<template v-else-if="key==='外观'">
+      <Appearance/>
+			</template>
+			<template v-else-if="key==='终端'">
+      <Terminal/>
+			</template>
+
 		</div>
+	</n-scrollbar>
 	</div>
 
 </template>
@@ -24,13 +35,16 @@ import {ref} from "vue";
 import { Icon } from '@iconify/vue';
 import DarkMode from '@/views/project/setting/components/DarkMode/index.vue';
 import ThemeColorSelect from '@/views/project/setting/components/ThemeColorSelect/index.vue';
+import Appearance from '@/views/project/setting/components/Appearance/index.vue';
+import Terminal from '@/views/project/setting/components/Terminal/index.vue';
 
-//{title:'外观',icon:'uil:swatchbook',active:false},{title:'终端',icon:'mingcute:terminal-box-line',active:false}
-const buttons=ref([{title:'应用',icon:'ep:setting',active:true}])
+const buttons=ref([{title:'应用',icon:'ep:setting',active:true},{title:'外观',icon:'uil:swatchbook',active:false},{title:'终端',icon:'mingcute:terminal-box-line',active:false}])
+const key=ref("应用");
 const togglePay = (item) => {
 	if (!item.active) {
 		item.active = true;
-
+		key.value = item.title;
+		console.log(key.value)
 		let value = buttons.value;
 		value.forEach((v)=>{
 			if (v.title !== item.title) {

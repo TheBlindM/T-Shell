@@ -57,8 +57,9 @@
     "vue": "^3.2.45",
     "vue-router": "^4.1.6",
     "xterm": "^5.1.0",
-    "xterm-addon-fit": "^0.7.0"
-  },
+    "xterm-addon-fit": "^0.7.0",
+		"xterm-addon-webgl": "^0.14.0"
+	},
   "devDependencies": {
     "@amap/amap-jsapi-types": "^0.0.8",
     "@commitlint/cli": "^17.0.3",
