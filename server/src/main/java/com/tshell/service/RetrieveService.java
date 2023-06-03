@@ -60,17 +60,15 @@ public class RetrieveService {
             log.debug("ttyOsType {} {}", ttyOsType.getId(), ttyOsType.getName());
             //CompletableFuture<List<RetrieveVO>> cmdListFuture = CompletableFuture.supplyAsync(() -> retrieveCmd(trimmedItem, 0, ttyOsType.getId()));
             CompletableFuture<List<RetrieveVO>> shortcutCmdListFuture = CompletableFuture.supplyAsync(() -> retrieveShortcutCmd(trimmedItem, ttyOsType.getId()));
-            CompletableFuture<List<RetrieveVO>> historyCmdListFuture = CompletableFuture.supplyAsync(() -> retrieveHistoryCmd(trimmedItem, ttyOsType.getId()));
+           // CompletableFuture<List<RetrieveVO>> historyCmdListFuture = CompletableFuture.supplyAsync(() -> retrieveHistoryCmd(trimmedItem, ttyOsType.getId()));
 
 
             try {
-                CompletableFuture.allOf(shortcutCmdListFuture, historyCmdListFuture).join();
+                CompletableFuture.allOf(shortcutCmdListFuture).join();
                 List<RetrieveVO> retrieveShortcutCmdList = shortcutCmdListFuture.get();
-                List<RetrieveVO> retrieveHistoryCmdList = historyCmdListFuture.get();
-                ArrayList<RetrieveVO> list = new ArrayList<>(retrieveShortcutCmdList.size() + retrieveHistoryCmdList.size());
+                ArrayList<RetrieveVO> list = new ArrayList<>(retrieveShortcutCmdList.size());
 
                 list.addAll(retrieveShortcutCmdList);
-                list.addAll(retrieveHistoryCmdList);
                 retrieveVOList = list;
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
