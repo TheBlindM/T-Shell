@@ -691,6 +691,7 @@ onDeactivated(() => {
   if (!tabStore.includeTab(fullPath)) {
     window.console.info(`close${channelId}`);
     close(channelId);
+		webGLAddon?.dispose();
     term.dispose();
   }
   showSearchDropdownRef.value = false;
