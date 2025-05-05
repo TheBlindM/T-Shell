@@ -3,6 +3,13 @@
 </div>
 
 ----
+Java native 版本已不在维护！
+基于Rust和Tauri的最新版，将会在下面地址中发布相关通知：
+
+**1.0正式版:**  [官网](https://www.tshell.online/)
+**文档:**  [文档地址](https://doc.tshell.online/)
+
+----
 
 [**T-Shell**](https://github.com/TheBlindM/T-Shell) (**TheBlindShell**) 是一个可配置命令提示的终端模拟器和 SSH客户端，目前只支持 Windows
 
@@ -27,7 +34,7 @@
 * **T-Shell 是**一个刚刚起步的项目,虽然不知道以后会发展成什么样子。 但是如果这个**应用**，或者**代码**，能帮到你。能让你学到到点东西,那这个项目就没白写！(格局一下子打开)
 
 
-**1.0正式版:**  [官网](https://www.tshell.online/)
+
 **开源地址:** [GitHub](https://github.com/TheBlindM/T-Shell) [Gitee](https://gitee.com/The-Blind/t-shell)
 
 <span style="color:#FFFF33">声明：开源，无后门，个人开发难免会存在一些BUG</span>
